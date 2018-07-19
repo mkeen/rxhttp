@@ -9,10 +9,10 @@ ex:
 
 ```
 new HttpRequest<any>(
-  this.urlFromConfig(config), {
+  'https://localhost/something', {
     method: 'POST',
     body: JSON.stringify({
-      'doc_ids': config[0]
+      'doc_ids': []
     })
   }
 ).send().subscribe(

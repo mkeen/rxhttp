@@ -1,7 +1,8 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.0.19",
+  "version": "1.0.21",
   "description": "http lib powered by rxjs",
+  "keywords": ["http-client", "rxjs6", "rxjs", "angular6", "angular", "typescript", "javascript", "javascript-library", "npm-module", "http"],
   "main": "dist/rxhttp.js",
   "types": "dist/rxhttp.d.ts",
   "repository": {

@@ -4,11 +4,10 @@
   "description": "http lib powered by rxjs",
   "main": "dist/rxhttp.js",
   "types": "dist/rxhttp.d.ts",
-  "repository" :
-  {
+  "repository": {
     "type" : "git",
     "url" : "https://github.com/mkeen/rxhttp"
-  }
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "typescript": "^2.9.2",

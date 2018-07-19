@@ -1,7 +1,7 @@
 # rxhttp
 Simple Streaming Fetch/RxJs HTTP Client
 
-Interact with an HTTP stream via an RxJs Observable. Supports typed responses via generics.
+Interact with an HTTP stream via an RxJs Observable. Supports typed responses with generics.
 
 install: `npm install @mkeen/rxhttp`
 

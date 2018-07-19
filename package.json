@@ -1,0 +1,22 @@
+{
+  "name": "@mkeen/rxhttp",
+  "version": "1.0.18",
+  "description": "http lib powered by rxjs",
+  "main": "dist/rxhttp.js",
+  "types": "dist/rxhttp.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typescript": "^2.9.2",
+    "build": "tsc"
+  },
+  "author": "Mike Keen",
+  "license": "ISC",
+  "dependencies": {
+    "rxjs": "^6.2.2"
+  },
+  "devDependencies": {
+    "ts-loader": "4.4.1",
+    "awesome-typescript-loader": "^5.2.0",
+    "typescript": "^2.9.2"
+  }
+}

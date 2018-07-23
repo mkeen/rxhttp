@@ -71,9 +71,14 @@ export class HttpRequest<T> {
                   decodedValue = new TextDecoder("utf-8").decode(value);
                   try {
                     parsedDecodedValue = JSON.parse(decodedValue);
-                    observer.next(parsedDecodedValue);
-                  } catch { }
-                } catch { }
+                    console.log('rxhttp received', decodedValue);
+                    try {
+                      observer.next(parsedDecodedValue);
+                    } catch {
+                      console.log("could not pass on", parsedDecodedValue, observer);
+                    }
+                  } catch { console.log("non-json data ignored", decodedValue); }
+                } catch { console.log("non-utf8 bytes ignored"); }
 
                 return next();
               })

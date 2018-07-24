@@ -29,6 +29,7 @@ export class HttpRequest<T> {
   private url: string;
   private options: HttpRequestOptions;
   private $cancel: Subject<boolean> = new Subject<boolean>();
+  private textDecoder: TextDecoder = new TextDecoder('utf-8');
 
 
   constructor(url: string, options: HttpRequestOptions = {}) {
@@ -41,22 +42,53 @@ export class HttpRequest<T> {
     this.$cancel.next(true);
   }
 
-  public retry(): Observable<T> {
-    return this.send();
+  public get(url: string): Observable<T> {
+    return Observable.create((observer: Observer<T>) => {
+      fetch(url, Object.assign({
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }, this.options)).then((response: any) => {
+        return observer.next(this.parseResponseData(response));
+      });
+    });
   }
 
-  public send(): Observable<T> {
+  private parseResponseData(data: any, parseBytes: boolean = false, parseJson: boolean = true): T {
+    if (parseBytes) {
+      try {
+        data = this.decodeBytes(data);
+      } catch {
+        console.log("can't decode bytes");
+      }
+    }
+
+    if (parseJson) {
+      try {
+        data = JSON.parse(data);
+      } catch {
+        console.log("json parse failed for", data);
+      }
+    }
+
+    return data;
+  }
+
+  private decodeBytes(bytes: any): string {
+    return this.textDecoder.decode(bytes);
+  }
+
+  public listen(): Observable<T> {
     return Observable.create((observer: Observer<T>) => {
       fetch(this.url, Object.assign({
         headers: {
           'Content-Type': 'application/json'
         }
-      }, this.options)).then((response: NotNull) => {
+      }, this.options)).then((response: any) => {
         const reader = response.body.getReader();
         return new ReadableStream({
           start: (controller: any) => {
-            return next();
-            function next(): any {
+            let next = () => {
               return reader.read().then(({ done, value }: any) => {
                 if (done) {
                   controller.close();
@@ -65,24 +97,14 @@ export class HttpRequest<T> {
                 }
 
                 controller.enqueue(value);
-                let decodedValue: string;
-                let parsedDecodedValue: T;
-                try {
-                  decodedValue = new TextDecoder("utf-8").decode(value);
-                  try {
-                    parsedDecodedValue = JSON.parse(decodedValue);
-                    console.log('rxhttp received', decodedValue);
-                    try {
-                      observer.next(parsedDecodedValue);
-                    } catch {
-                      console.log("could not pass on", parsedDecodedValue, observer);
-                    }
-                  } catch { console.log("non-json data ignored", decodedValue); }
-                } catch { console.log("non-utf8 bytes ignored"); }
-
+                observer.next(
+                  this.parseResponseData(value, true)
+                );
                 return next();
               })
             }
+
+            return next();
           },
           cancel: () => {
             console.log("this is donezo");

@@ -31,6 +31,11 @@ export class HttpRequest<T> {
     this.options = options;
   }
 
+  public configure(url: string, options: HttpRequestOptions = {}) {
+    this.url = url;
+    this.options = options;
+  }
+
   public cancel(): Observable<boolean> {
     return Observable
       .create((observer: Observer<boolean>) => {

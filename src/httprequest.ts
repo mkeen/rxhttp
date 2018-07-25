@@ -1,5 +1,5 @@
 import { Observable, Observer, Subject } from 'rxjs';
-import { takeUntil, filter } from 'rxjs/operators';
+import { takeUntil, filter, take } from 'rxjs/operators';
 
 interface HttpRequestState {
   messages: string[];
@@ -36,8 +36,19 @@ export class HttpRequest<T> {
     this.options = options;
   }
 
-  public cancel(): void {
-    this.$cancel.next(true);
+  public cancel(): Observable<boolean> {
+    return Observable
+      .create((observer: Observer<boolean>) => {
+        this.$cancel
+          .pipe(take(1))
+          .subscribe((value) => {
+            this.$cancel.next(false);
+            observer.complete();
+          });
+
+        this.$cancel.next(true);
+      });
+
   }
 
   public get(): Observable<T> {

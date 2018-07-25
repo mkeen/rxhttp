@@ -15,6 +15,19 @@ new HttpRequest<any>(
       'doc_ids': []
     })
   }
-).send().subscribe(
+).watch().subscribe(
   (incoming_data: any) => console.log(incoming_data)
 );
+```
+
+Even supports plain jane request/response
+
+```
+new HttpRequest<any>(
+  'https://localhost/boring', {
+    method: 'GET'
+  }
+).get().subscribe(
+  (incoming_data: any) => console.log("received response, connection closed")  
+)
+```

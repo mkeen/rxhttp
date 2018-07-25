@@ -20,11 +20,6 @@ interface NotNull {
   body: any;
 }
 
-declare var ReadableStream: {
-  prototype: ReadableStream;
-  new(underlyingSink?: any, queueingStrategy?: any): any;
-};
-
 export class HttpRequest<T> {
   private url: string;
   private options: HttpRequestOptions;

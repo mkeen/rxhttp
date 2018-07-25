@@ -1,6 +1,6 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.0.26",
+  "version": "1.1.0",
   "description": "Simple Streaming Fetch/RxJs HTTP Client",
   "keywords": ["http-client", "rxjs6", "rxjs", "angular6", "angular", "typescript", "javascript", "javascript-library", "npm-module", "http"],
   "main": "dist/rxhttp.js",

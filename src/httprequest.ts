@@ -29,8 +29,7 @@ export class HttpRequest<T> {
   private url: string;
   private options: HttpRequestOptions;
   private $cancel: Subject<boolean> = new Subject<boolean>();
-  private textDecoder: TextDecoder = new TextDecoder('utf-8');
-
+  private textDecoder: any = new TextDecoder('utf-8');
 
   constructor(url: string, options: HttpRequestOptions = {}) {
     this.url = url;
@@ -38,20 +37,38 @@ export class HttpRequest<T> {
   }
 
   public cancel(): void {
-    console.log("about to cancel");
     this.$cancel.next(true);
   }
 
-  public get(url: string): Observable<T> {
-    return Observable.create((observer: Observer<T>) => {
-      fetch(url, Object.assign({
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }, this.options)).then((response: any) => {
-        return observer.next(this.parseResponseData(response));
+  public get(): Observable<T> {
+    return Observable
+      .create((observer: Observer<T>) => {
+        fetch(this.url, Object.assign({
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }, this.options))
+          .then(response => response.json())
+          .then(response => observer.next(response))
       });
-    });
+  }
+
+  public listen(): Observable<T> {
+    return Observable
+      .create((observer: Observer<T>) => {
+        fetch(this.url, Object.assign({
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }, this.options))
+          .then(stream => stream)
+          .catch(() => {
+            console.log("Database conection error: Unknown");
+          });
+
+      })
+      .pipe(takeUntil(this.$cancel))
+      .pipe(filter(fragment => !!fragment))
   }
 
   private parseResponseData(data: any, parseBytes: boolean = false, parseJson: boolean = true): T {
@@ -78,45 +95,4 @@ export class HttpRequest<T> {
     return this.textDecoder.decode(bytes);
   }
 
-  public listen(): Observable<T> {
-    return Observable.create((observer: Observer<T>) => {
-      fetch(this.url, Object.assign({
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }, this.options)).then((response: any) => {
-        const reader = response.body.getReader();
-        return new ReadableStream({
-          start: (controller: any) => {
-            let next = () => {
-              return reader.read().then(({ done, value }: any) => {
-                if (done) {
-                  controller.close();
-                  observer.complete();
-                  return;
-                }
-
-                controller.enqueue(value);
-                observer.next(
-                  this.parseResponseData(value, true)
-                );
-                return next();
-              })
-            }
-
-            return next();
-          },
-          cancel: () => {
-            console.log("this is donezo");
-          }
-        })
-      }).then(stream => {
-        return new Response(stream)
-      }).catch(() => {
-        console.log("error");
-      });
-    }).pipe(takeUntil(this.$cancel))
-      .pipe(filter((fragment: any) => !!fragment));
-  }
 }
-

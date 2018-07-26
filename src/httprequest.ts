@@ -1,5 +1,5 @@
-import { Observable, Observer, Subject } from 'rxjs';
-import { takeUntil, filter, take } from 'rxjs/operators';
+import { Subject, Observable, Observer, Subscription } from 'rxjs';
+import { take, takeUntil, filter } from 'rxjs/operators';
 
 interface HttpRequestState {
   messages: string[];
@@ -20,6 +20,11 @@ interface NotNull {
   body: any;
 }
 
+declare var ReadableStream: {
+  prototype: ReadableStream;
+  new(underlyingSink?: any, queueingStrategy?: any): any;
+};
+
 export class HttpRequest<T> {
   private url: string;
   private options: HttpRequestOptions;
@@ -32,21 +37,22 @@ export class HttpRequest<T> {
   }
 
   public configure(url: string, options: HttpRequestOptions = {}) {
+    console.log("reconfiguring");
+    console.log(url, options);
     this.url = url;
     this.options = options;
   }
 
   public cancel(): Observable<boolean> {
+    this.$cancel.next(true);
     return Observable
       .create((observer: Observer<boolean>) => {
         this.$cancel
           .pipe(take(1))
           .subscribe((value) => {
-            this.$cancel.next(false);
             observer.complete();
           });
 
-        this.$cancel.next(true);
       });
 
   }
@@ -72,9 +78,41 @@ export class HttpRequest<T> {
             'Content-Type': 'application/json'
           }
         }, this.options))
-          .then(stream => stream)
-          .catch(() => {
-            console.log("Database conection error: Unknown");
+          .then((response: NotNull) => {
+            const reader = response.body.getReader();
+            return new ReadableStream({
+              start: (controller: any) => {
+                return next();
+                function next(): any {
+                  return reader.read().then(({ done, value }: any) => {
+                    if (done) {
+                      controller.close();
+                      observer.complete();
+                      return;
+                    }
+
+                    controller.enqueue(value);
+                    let decodedValue: string;
+                    let parsedDecodedValue: T;
+                    try {
+                      decodedValue = new TextDecoder("utf-8").decode(value);
+                      try {
+                        parsedDecodedValue = JSON.parse(decodedValue);
+                        observer.next(parsedDecodedValue);
+                      } catch { }
+                    } catch { }
+                    return next();
+                  })
+                }
+              },
+              cancel: () => {
+                console.log("this is donezo");
+              }
+            })
+          }).then(stream => {
+            return new Response(stream)
+          }).catch(() => {
+            console.log("error");
           });
 
       })
@@ -89,6 +127,7 @@ export class HttpRequest<T> {
       } catch {
         console.log("can't decode bytes");
       }
+
     }
 
     if (parseJson) {

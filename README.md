@@ -20,14 +20,14 @@ new HttpRequest<any>(
 );
 ```
 
-Even supports plain jane request/response
+Even supports basic request/response
 
 ```
 new HttpRequest<any>(
   'https://localhost/boring', {
     method: 'GET'
   }
-).get().subscribe(
+).send().subscribe(
   (incoming_data: any) => console.log("received response, connection closed")  
 )
 ```

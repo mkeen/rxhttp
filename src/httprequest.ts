@@ -57,7 +57,7 @@ export class HttpRequest<T> {
 
   }
 
-  public get(): Observable<T> {
+  public send(): Observable<T> {
     return Observable
       .create((observer: Observer<T>) => {
         fetch(this.url, Object.assign({

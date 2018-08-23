@@ -1,24 +1,12 @@
 import { Subject, Observable, Observer, Subscription } from 'rxjs';
 import { take, takeUntil, filter } from 'rxjs/operators';
 
-interface HttpRequestState {
-  messages: string[];
-}
-
-interface HttpRequestHeaders {
-  "Content-Type": string;
-}
-
-interface HttpRequestOptions {
-  headers?: HttpRequestHeaders;
-  method?: string;
-  body?: string;
-  retry?: boolean;
-}
-
-interface NotNull {
-  body: any;
-}
+import {
+  HttpRequestHeaders,
+  HttpRequestOptions,
+  HttpRequestState,
+  BasicResponse
+} from './httprequest.d';
 
 declare var ReadableStream: {
   prototype: ReadableStream;
@@ -29,7 +17,6 @@ export class HttpRequest<T> {
   private url: string;
   private options: HttpRequestOptions;
   private $cancel: Subject<boolean> = new Subject<boolean>();
-  private textDecoder: any = new TextDecoder('utf-8');
 
   constructor(url: string, options: HttpRequestOptions = {}) {
     this.url = url;
@@ -37,8 +24,6 @@ export class HttpRequest<T> {
   }
 
   public configure(url: string, options: HttpRequestOptions = {}) {
-    console.log("reconfiguring");
-    console.log(url, options);
     this.url = url;
     this.options = options;
   }
@@ -64,10 +49,12 @@ export class HttpRequest<T> {
           headers: {
             'Content-Type': 'application/json'
           }
+
         }, this.options))
           .then(response => response.json())
           .then(response => observer.next(response))
       });
+
   }
 
   public listen(): Observable<T> {
@@ -77,72 +64,60 @@ export class HttpRequest<T> {
           headers: {
             'Content-Type': 'application/json'
           }
+
         }, this.options))
-          .then((response: NotNull) => {
+          .then((response: BasicResponse) => {
             const reader = response.body.getReader();
             return new ReadableStream({
               start: (controller: any) => {
                 return next();
                 function next(): any {
-                  return reader.read().then(({ done, value }: any) => {
+                  return reader.read().then(({ done, bytes }: any) => {
                     if (done) {
                       controller.close();
                       observer.complete();
                       return;
                     }
 
-                    controller.enqueue(value);
+                    controller.enqueue(bytes);
                     let decodedValue: string;
                     let parsedDecodedValue: T;
+
                     try {
-                      decodedValue = new TextDecoder("utf-8").decode(value);
+                      decodedValue = new TextDecoder('utf-8').decode(bytes);
                       try {
                         parsedDecodedValue = JSON.parse(decodedValue);
                         observer.next(parsedDecodedValue);
-                      } catch { }
-                    } catch { }
+                      } catch {
+                        console.error('');
+                      }
+
+                    } catch {
+                      console.error('Response was not utf-8 bytes');
+                    }
+
                     return next();
                   })
+
                 }
+
               },
+
               cancel: () => {
-                console.log("this is donezo");
+                console.log('stream cancelled');
               }
+
             })
+
           }).then(stream => {
             return new Response(stream)
           }).catch(() => {
-            console.log("error");
+            console.log('error');
           });
 
       })
       .pipe(takeUntil(this.$cancel))
       .pipe(filter(fragment => !!fragment))
-  }
-
-  private parseResponseData(data: any, parseBytes: boolean = false, parseJson: boolean = true): T {
-    if (parseBytes) {
-      try {
-        data = this.decodeBytes(data);
-      } catch {
-        console.log("can't decode bytes");
-      }
-
-    }
-
-    if (parseJson) {
-      try {
-        data = JSON.parse(data);
-      } catch {
-        console.log("json parse failed for", data);
-      }
-    }
-
-    return data;
-  }
-
-  private decodeBytes(bytes: any): string {
-    return this.textDecoder.decode(bytes);
   }
 
 }

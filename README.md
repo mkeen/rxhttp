@@ -8,15 +8,21 @@ install: `npm install @mkeen/rxhttp`
 ex: 
 
 ```
-new HttpRequest<any>(
+interface Person {
+  name: string;
+  email: string;
+}
+
+new HttpRequest<Person>(
   'https://localhost/something', {
     method: 'POST',
     body: JSON.stringify({
-      'doc_ids': []
+      'post_param_1': 'something',
+      'post_param_2': 'something else'
     })
   }
 ).watch().subscribe(
-  (incoming_data: any) => console.log(incoming_data)
+  (incoming_data: Person) => console.log('person changed: ', incoming_data);
 );
 ```
 
@@ -28,6 +34,6 @@ new HttpRequest<any>(
     method: 'GET'
   }
 ).send().subscribe(
-  (incoming_data: any) => console.log("received response, connection closed")  
+  (incoming_data: any) => console.log("received response, connection closed");
 )
 ```

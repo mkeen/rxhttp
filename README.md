@@ -12,14 +12,13 @@ interface Person {
   name: string;
   email: string;
 }
-```
 
-```
 new HttpRequest<Person>(
   'https://localhost/something', {
     method: 'POST',
     body: JSON.stringify({
-      'doc_ids': []
+      'post_param_1': 'something',
+      'post_param_2': 'something else'
     })
   }
 ).watch().subscribe(

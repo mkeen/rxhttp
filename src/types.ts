@@ -16,4 +16,3 @@ export interface HttpRequestOptions {
 export interface BasicResponse {
   body: any;
 }
-

@@ -6,7 +6,7 @@ import {
   HttpRequestOptions,
   HttpRequestState,
   BasicResponse
-} from './httprequest.d';
+} from './types';
 
 declare var ReadableStream: {
   prototype: ReadableStream;

@@ -14,11 +14,11 @@ interface Person {
 }
 
 new HttpRequest<Person>(
-  'https://localhost/something', {
+  'https://localhost/person', {
     method: 'POST',
     body: JSON.stringify({
-      'post_param_1': 'something',
-      'post_param_2': 'something else'
+      'name': 'Mike',
+      'email': 'mkeen.atl@gmail.com'
     })
   }
 )

@@ -21,7 +21,9 @@ new HttpRequest<Person>(
       'post_param_2': 'something else'
     })
   }
-).watch().subscribe(
+)
+.watch()
+.subscribe(
   (incoming_data: Person) => console.log('person changed: ', incoming_data);
 );
 ```
@@ -33,7 +35,9 @@ new HttpRequest<any>(
   'https://localhost/boring', {
     method: 'GET'
   }
-).send().subscribe(
+)
+.send()
+.subscribe(
   (incoming_data: any) => console.log("received response, connection closed");
 )
 ```

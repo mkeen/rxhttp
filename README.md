@@ -38,6 +38,6 @@ new HttpRequest<any>(
 )
 .send()
 .subscribe(
-  (incoming_data: any) => console.log("received response, connection closed");
+  (incoming_data: any) => console.log('received response, connection closed', incoming_data);
 )
 ```

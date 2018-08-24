@@ -72,24 +72,24 @@ export class HttpRequest<T> {
               start: (controller: any) => {
                 return next();
                 function next(): any {
-                  return reader.read().then(({ done, bytes }: any) => {
+                  return reader.read().then(({ done, value }: any) => {
                     if (done) {
                       controller.close();
                       observer.complete();
                       return;
                     }
 
-                    controller.enqueue(bytes);
+                    controller.enqueue(value);
                     let decodedValue: string;
                     let parsedDecodedValue: T;
 
                     try {
-                      decodedValue = new TextDecoder('utf-8').decode(bytes);
+                      decodedValue = new TextDecoder('utf-8').decode(value);
                       try {
                         parsedDecodedValue = JSON.parse(decodedValue);
                         observer.next(parsedDecodedValue);
                       } catch {
-                        console.error('');
+                        console.error('can\'t parse json', decodedValue);
                       }
 
                     } catch {

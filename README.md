@@ -14,14 +14,16 @@ interface Person {
 }
 
 new HttpRequest<Person>(
-  'https://localhost/something', {
+  'https://localhost/person', {
     method: 'POST',
     body: JSON.stringify({
-      'post_param_1': 'something',
-      'post_param_2': 'something else'
+      'name': 'Mike',
+      'email': 'mkeen.atl@gmail.com'
     })
   }
-).watch().subscribe(
+)
+.watch()
+.subscribe(
   (incoming_data: Person) => console.log('person changed: ', incoming_data);
 );
 ```
@@ -33,7 +35,9 @@ new HttpRequest<any>(
   'https://localhost/boring', {
     method: 'GET'
   }
-).send().subscribe(
-  (incoming_data: any) => console.log("received response, connection closed");
+)
+.send()
+.subscribe(
+  (incoming_data: any) => console.log('received response, connection closed', incoming_data);
 )
 ```

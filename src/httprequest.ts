@@ -11,7 +11,7 @@ import {
 } from './types';
 
 export class HttpRequest<T> {
-  private abortController = new AbortController();
+  private abortController: AbortController = new AbortController();
   private defaultRequestOptions: HttpRequestOptions = {
     headers: {
       'Content-Type': 'application/json'
@@ -44,6 +44,8 @@ export class HttpRequest<T> {
     const cancel$: Subject<boolean> = new BehaviorSubject(false);
     return Observable
       .create((observer: Observer<T>) => {
+        this.abortController = new AbortController();
+
         fetch(this.url,
           Object.assign(
             Object.assign(
@@ -60,13 +62,11 @@ export class HttpRequest<T> {
           }).then(stream => {
             return stream;
           }).catch((e) => {
-            this.abortController = new AbortController();
-
             if (e instanceof DOMException) {
               cancel$.next(true);
             } else {
-              cancel$.next(true);
               console.error('unknown error');
+              cancel$.next(true);
             }
 
           });

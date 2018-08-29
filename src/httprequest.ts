@@ -77,7 +77,10 @@ export class HttpRequest<T> {
       .pipe(filter(fragment => !!fragment))
   }
 
-  private readableStream(reader: ReadableStreamDefaultReader, observer: Observer<T>): ReadableStream {
+  private readableStream(
+    reader: ReadableStreamDefaultReader,
+    observer: Observer<T>
+  ): ReadableStream {
     return new ReadableStream({
       start: (controller: any) => {
         return next();

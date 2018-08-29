@@ -25,8 +25,12 @@ export class HttpRequest<T> {
     private options: HttpRequestOptions
   ) { }
 
-  public reconfigure(url: string, options: HttpRequestOptions = {}) {
+  public cancel() {
     this.abortController.abort();
+  }
+
+  public reconfigure(url: string, options: HttpRequestOptions = {}) {
+    this.cancel();
     this.url = url;
     this.options = options;
   }

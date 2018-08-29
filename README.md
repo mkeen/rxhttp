@@ -34,7 +34,7 @@ mike_keen.reconfigure('https://localhost/person_alternate', {
     'name': 'Mike',
     'email': 'mkeen.atl@gmail.com'
   });
-})
+});
 ```
 
 Even supports basic request/response

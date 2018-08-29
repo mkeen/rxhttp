@@ -1,5 +1,5 @@
 # RxHttp
-Simple Streaming Fetch/RxJs HTTP Client for JavaScript
+Fetch/RxJs HTTP Client for JavaScript. Designed to be as flexible and efficient an RxJS-based http client as is humanly possible. Supports long-lived real-time json streams, as well as simple request/response json requests.
 
 Interact with an HTTP stream via an RxJs Observable. Supports typed responses with generics.
 
@@ -40,13 +40,13 @@ mike_keen.reconfigure('https://localhost/person_alternate', {
 });
 ```
 
-Even supports basic request/response
+As simple as it gets:
 
 ```
 import { HttpRequest } from '@mkeen/rxhttp';
 
 new HttpRequest<any>(
-  'https://localhost/boring', {
+  'https://localhost/simple', {
     method: 'GET'
   }
   

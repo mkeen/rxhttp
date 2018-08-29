@@ -100,12 +100,13 @@ export class HttpRequest<T> {
 
               try {
                 observer.next(JSON.parse(decodedValue));
+
               } catch {
-                console.error('decoded response was not json', decodedValue);
+                console.error('decoded response not json', decodedValue);
               }
 
             } catch {
-              console.error('response was not utf-8 bytes');
+              console.error('response not utf-8');
             }
 
             return next();

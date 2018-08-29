@@ -1,6 +1,7 @@
 import { Subject, Observable, Observer, Subscription, BehaviorSubject } from 'rxjs';
 import { take, takeUntil, filter } from 'rxjs/operators';
 import { TextEncoder, TextDecoder } from 'text-encoding-shim';
+import { ReadableStreamDefaultReader } from 'whatwg-streams';
 import { ReadableStream } from '@mattiasbuelens/web-streams-polyfill/ponyfill';
 
 import {
@@ -45,13 +46,13 @@ export class HttpRequest<T> {
     return Observable
       .create((observer: Observer<T>) => {
         this.abortController = new AbortController();
-
         fetch(this.url,
           Object.assign(
             Object.assign(
               this.defaultRequestOptions, {
                 signal: this.abortController.signal
               }
+
             ), this.options
           )).then((response: BasicResponse) => {
             return this.readableStream(
@@ -76,7 +77,7 @@ export class HttpRequest<T> {
       .pipe(filter(fragment => !!fragment))
   }
 
-  private readableStream(reader: any, observer: any): ReadableStream {
+  private readableStream(reader: ReadableStreamDefaultReader, observer: Observer<T>): ReadableStream {
     return new ReadableStream({
       start: (controller: any) => {
         return next();
@@ -90,19 +91,18 @@ export class HttpRequest<T> {
 
             controller.enqueue(value);
             let decodedValue: string;
-            let parsedDecodedValue: T;
 
             try {
               decodedValue = new TextDecoder('utf-8').decode(value);
+
               try {
-                parsedDecodedValue = JSON.parse(decodedValue);
-                observer.next(parsedDecodedValue);
+                observer.next(JSON.parse(decodedValue));
               } catch {
-                console.error('can\'t parse json', decodedValue);
+                console.error('decoded response was not json', decodedValue);
               }
 
             } catch {
-              console.error('Response was not utf-8 bytes');
+              console.error('response was not utf-8 bytes');
             }
 
             return next();
@@ -117,6 +117,7 @@ export class HttpRequest<T> {
       }
 
     })
+
   }
 
 }

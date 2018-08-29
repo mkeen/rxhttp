@@ -13,7 +13,7 @@ interface Person {
   email: string;
 }
 
-new HttpRequest<Person>(
+let mike_keen = new HttpRequest<Person>(
   'https://localhost/person', {
     method: 'POST',
     body: JSON.stringify({
@@ -26,6 +26,15 @@ new HttpRequest<Person>(
 .subscribe(
   (incoming_data: Person) => console.log('person changed: ', incoming_data);
 );
+
+// Reconfigure the request in-flight. Change URL, method, body, headers, whatever...
+mike_keen.reconfigure('https://localhost/person_alternate', {
+  method: 'POST',
+  body: JSON.stringify({
+    'name': 'Mike',
+    'email': 'mkeen.atl@gmail.com'
+  });
+});
 ```
 
 Even supports basic request/response

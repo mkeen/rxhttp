@@ -1,13 +1,22 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Modern RxJs/Fetch-Based HTTP Client",
-  "keywords": ["http", "http-client", "rxjs6", "rxjs", "typescript", "javascript", "javascript-library", "npm-module"],
+  "keywords": [
+    "http",
+    "http-client",
+    "rxjs6",
+    "rxjs",
+    "typescript",
+    "javascript",
+    "javascript-library",
+    "npm-module"
+  ],
   "main": "dist/rxhttp.js",
   "types": "dist/rxhttp.d.ts",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/mkeen/rxhttp"
+    "type": "git",
+    "url": "https://github.com/mkeen/rxhttp"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -17,11 +26,13 @@
   "author": "Mike Keen",
   "license": "ISC",
   "dependencies": {
-    "rxjs": "^6.2.2"
+    "@mattiasbuelens/web-streams-polyfill": "^0.1.0",
+    "rxjs": "^6.2.2",
+    "text-encoding-shim": "^1.0.0"
   },
   "devDependencies": {
-    "ts-loader": "4.4.1",
     "awesome-typescript-loader": "^5.2.0",
+    "ts-loader": "4.4.1",
     "typescript": "^2.9.2"
   }
 }

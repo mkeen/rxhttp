@@ -8,6 +8,8 @@ install: `npm install @mkeen/rxhttp`
 ex: 
 
 ```
+import { HttpRequest } from '@mkeen/rxhttp';
+
 interface Person {
   name: string;
   email: string;
@@ -34,16 +36,20 @@ mike_keen.reconfigure('https://localhost/person_alternate', {
     'name': 'Mike',
     'email': 'mkeen.atl@gmail.com'
   });
+  
 });
 ```
 
 Even supports basic request/response
 
 ```
+import { HttpRequest } from '@mkeen/rxhttp';
+
 new HttpRequest<any>(
   'https://localhost/boring', {
     method: 'GET'
   }
+  
 )
 .send()
 .subscribe(

@@ -5,14 +5,20 @@ import { ReadableStreamDefaultReader } from 'whatwg-streams';
 import { ReadableStream } from '@mattiasbuelens/web-streams-polyfill/ponyfill';
 
 import {
+  FetchBehavior,
   HttpRequestHeaders,
   HttpRequestOptions,
   HttpRequestState,
-  BasicResponse
+  BasicResponse,
+  HttpConnection,
 } from './types';
 
+import { RxHttpObservable } from './rxhttpobservable';
+
 export class HttpRequest<T> {
-  private abortController: AbortController = new AbortController();
+  private simpleConnection: HttpConnection<T> = null;
+  private streamConnection: HttpConnection<T> = null;
+
   private defaultRequestOptions: HttpRequestOptions = {
     headers: {
       'Content-Type': 'application/json'
@@ -25,60 +31,98 @@ export class HttpRequest<T> {
     private options: HttpRequestOptions
   ) { }
 
-  public cancel() {
-    this.abortController.abort();
+  public send(
+    fetchBehavior: FetchBehavior
+  ): Observable<T> {
+    const fetchAbort: AbortController = new AbortController();
+    const connection: HttpConnection<T> = null;
+
+    if (this.connectionManager[] !== undefined) {
+      if (this.connectionManager[fetchBehavior].fetchAbort !== undefined) {
+        this.connectionManager[fetchBehavior].fetchAbort.abort();
+      }
+    }
+
+    //const connection: HttpConnection<T> = this.connectionManager[fetchBehavior] || {
+    //  fetchAbort: fetchAbort,
+    //  observable: this.genericRequestObservable(fetchBehavior, fetchAbort)
+    //};
+
+    //return connection.observable;
   }
 
-  public reconfigure(url: string, options: HttpRequestOptions = {}) {
-    this.cancel();
-    this.url = url;
-    this.options = options;
-  }
+  private genericRequestObservable(fetchBehavior: FetchBehavior, fetchAbort: AbortController): Observable<T> {
+    const cleanUp: Subject<boolean> = new BehaviorSubject(false);
 
-  public send(): Observable<T> {
-    return Observable
+    const observable = Observable
       .create((observer: Observer<T>) => {
-        fetch(this.url, Object.assign(this.defaultRequestOptions, this.options))
-          .then(response => response.json())
-          .then(response => observer.next(response))
-      });
-
-  }
-
-  public listen(): Observable<T> {
-    const cancel$: Subject<boolean> = new BehaviorSubject(false);
-    return Observable
-      .create((observer: Observer<T>) => {
-        this.abortController = new AbortController();
-        fetch(this.url,
+        const httpFetch = fetch(
+          this.url,
           Object.assign(
             Object.assign(
               this.defaultRequestOptions, {
-                signal: this.abortController.signal
+                signal: fetchAbort.signal
               }
 
             ), this.options
-          )).then((response: BasicResponse) => {
-            return this.readableStream(
-              response.body.getReader(),
-              observer
-            );
+          )
+        );
 
-          }).then(stream => {
-            return stream;
-          }).catch((e) => {
-            if (e instanceof DOMException) {
-              cancel$.next(true);
-            } else {
-              console.error('unknown error');
-              cancel$.next(true);
+        let behavior: Promise<any>;
+        switch (fetchBehavior) {
+          case FetchBehavior.stream: behavior = this.streamHandler(httpFetch, observer); break;
+          default: behavior = this.simpleHandler(httpFetch, observer); break;
+        }
+
+        behavior
+          .catch(
+            (exception) => {
+              if (exception instanceof DOMException) {
+                console.error(exception);
+                cleanUp.next(true);
+              } else {
+                console.error('unknown error');
+                cleanUp.next(true);
+              }
+
             }
 
-          });
+          );
 
-      })
-      .pipe(takeUntil(cancel$))
-      .pipe(filter(fragment => !!fragment))
+      });
+
+    const httpObservable: RxHttpObservable<T> = Object.assign(
+      observable,
+      new RxHttpObservable()
+    )
+
+    return httpObservable
+      .pipe(takeUntil(cleanUp));
+
+  }
+
+  private simpleHandler(httpFetch: Promise<any>, observer: Observer<T>): Promise<any> {
+    return httpFetch
+      .then(response => observer.next(response.json()))
+  }
+
+  private streamHandler(httpFetch: Promise<any>, observer: Observer<T>): Promise<any> {
+    return httpFetch.then(
+      (httpConnection) => {
+        return this.readableStream(
+          httpConnection.body.getReader(),
+          observer
+        );
+      }
+    ).then(
+      stream => stream
+    )
+
+  }
+
+  public reconfigure(url: string, options: HttpRequestOptions = {}) {
+    this.url = url;
+    this.options = options;
   }
 
   private readableStream(

@@ -1,5 +1,5 @@
 # RxHttp
-Fetch/RxJs HTTP Client for TypeScript. Designed to be as flexible and efficient an RxJS-based http client as is humanly possible. Supports long-lived real-time json streams, as well as simple request/response json requests.
+Fetch/RxJs HTTP Client for TypeScript. Designed to be as flexible and efficient an RxJS-based http client as is humanly possible. Supports long-lived real-time json streams, as well as simple request/response json interactions.
 
 Interact with an HTTP stream via an RxJs Observable. Supports typed responses with generics.
 

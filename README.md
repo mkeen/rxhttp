@@ -8,36 +8,40 @@ install: `npm install @mkeen/rxhttp`
 ex: 
 
 ```
-import { HttpRequest } from '@mkeen/rxhttp';
+import { HttpRequest, FetchBehavior } from '@mkeen/rxhttp';
 
 interface Person {
   name: string;
   email: string;
 }
 
-let mike_keen = new HttpRequest<Person>(
+let person = new HttpRequest<Person>(
   'https://localhost/person', {
     method: 'POST',
     body: JSON.stringify({
-      'name': 'Mike',
-      'email': 'mkeen.atl@gmail.com'
+      'id': 1
     })
   }
 )
-.watch()
+.send(
+  FetchBehavior.stream
+)
 .subscribe(
-  (incoming_data: Person) => console.log('person changed: ', incoming_data);
+  (incoming_data: Person) => console.log('got person: ', incoming_data);
 );
 
 // Reconfigure the request in-flight. Change URL, method, body, headers, whatever...
-mike_keen.reconfigure('https://localhost/person_alternate', {
+person.reconfigure('https://localhost/person', {
   method: 'POST',
   body: JSON.stringify({
-    'name': 'Mike',
-    'email': 'mkeen.atl@gmail.com'
+    'id': 2
   });
   
 });
+
+// Output:
+got person: , ...
+got person: , ...
 ```
 
 As simple as it gets:
@@ -55,4 +59,7 @@ new HttpRequest<any>(
 .subscribe(
   (incoming_data: any) => console.log('received response, connection closed', incoming_data);
 );
+
+// Output:
+received response, connection closed , ...
 ```

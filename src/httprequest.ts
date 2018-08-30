@@ -14,9 +14,7 @@ import {
 } from './types';
 
 export class HttpRequest<T> {
-  private simpleConnection: HttpConnection<T> = null;
-  private streamConnection: HttpConnection<T> = null;
-
+  private connection: HttpConnection<T> = null;
   private defaultRequestOptions: HttpRequestOptions = {
     headers: {
       'Content-Type': 'application/json'
@@ -30,34 +28,20 @@ export class HttpRequest<T> {
   ) { }
 
   public send(
-    fetchBehavior: FetchBehavior
+    fetchBehavior: FetchBehavior = FetchBehavior.simple
   ): Observable<T> {
     const abortController: AbortController = new AbortController();
-    if (fetchBehavior === FetchBehavior.stream) {
-      if (this.streamConnection !== null) {
-        this.streamConnection.fetchAbort.abort();
-      }
 
-    } else {
-      if (this.simpleConnection !== null) {
-        this.simpleConnection.fetchAbort.abort();
-      }
-
+    if (this.connection !== null) {
+      this.connection.fetchAbort.abort();
     }
 
-    const info: HttpConnection<T> = {
+    this.connection = {
       fetchAbort: abortController,
       observable: this.requestObservable(fetchBehavior, abortController)
     }
 
-    if (fetchBehavior === FetchBehavior.stream) {
-      this.streamConnection = info;
-      return this.streamConnection.observable;
-    } else {
-      this.simpleConnection = info;
-      return this.simpleConnection.observable;
-    }
-
+    return this.connection.observable;
   }
 
   public reconfigure(url: string, options: HttpRequestOptions = {}) {
@@ -67,7 +51,8 @@ export class HttpRequest<T> {
 
   private simpleHandler(httpFetch: Promise<any>, observer: Observer<T>): Promise<any> {
     return httpFetch
-      .then(response => observer.next(response.json()))
+      .then(response => response.json())
+      .then(response => observer.next(response))
   }
 
   private streamHandler(httpFetch: Promise<any>, observer: Observer<T>): Promise<any> {
@@ -85,7 +70,7 @@ export class HttpRequest<T> {
   }
 
   private requestObservable(fetchBehavior: FetchBehavior, fetchAbort: AbortController): Observable<T> {
-    const cleanUp: Subject<boolean> = new BehaviorSubject(false);
+    const cleanUp: Subject<boolean> = new Subject();
     const observable = Observable
       .create((observer: Observer<T>) => {
         const httpFetch = fetch(

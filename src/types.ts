@@ -1,5 +1,4 @@
-import { RxHttpObservable } from './rxhttpobservable';
-import { Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 
 export interface HttpRequestState {
   messages: string[];

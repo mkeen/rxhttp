@@ -4,7 +4,7 @@ HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good
 ### Features:
 💪 Strongly typed responses  
 🚁 In-flight configuration changes  
-🌊 Long-lived JSON streams
+🌊 Long-lived real-time JSON streams
 
 ### Coming soon:
 🆘 Retry facilities  

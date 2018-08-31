@@ -11,7 +11,7 @@ HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good
 📜 Documentation  
 💯 Test coverage
 
-https://www.npmjs.com/package/@mkeen/rxhttp
+https://www.npmjs.com/package/@mkeen/rxhttp  
 install: `npm install @mkeen/rxhttp`
 
 ex: 

@@ -1,4 +1,4 @@
-# 👋 Hello RxHttp
+# 👋 RxHttp
 HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' simple request/response. Powered by RxJS.
 
 ### Features:

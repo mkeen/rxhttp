@@ -1,5 +1,5 @@
-import { Subject, Observable, Observer, Subscription, BehaviorSubject } from 'rxjs';
-import { take, takeUntil, filter } from 'rxjs/operators';
+import { Observable, Observer, Subscription, Subject } from 'rxjs';
+import { take, takeUntil } from 'rxjs/operators';
 import { TextEncoder, TextDecoder } from 'text-encoding-shim';
 import { ReadableStreamDefaultReader } from 'whatwg-streams';
 import { ReadableStream } from '@mattiasbuelens/web-streams-polyfill/ponyfill';
@@ -7,14 +7,17 @@ import { ReadableStream } from '@mattiasbuelens/web-streams-polyfill/ponyfill';
 import {
   FetchBehavior,
   HttpRequestHeaders,
-  HttpRequestOptions,
-  HttpRequestState,
-  BasicResponse,
-  HttpConnection,
+  HttpRequestOptions
 } from './types';
 
 export class HttpRequest<T> {
-  private connection: HttpConnection<T> = null;
+  private abortController: AbortController = new AbortController();
+  private observer: Observer<T> | null = null;
+  private observable: Observable<T> = Observable
+    .create((observer: Observer<T>) => {
+      this.observer = observer;
+    });
+
   private defaultRequestOptions: HttpRequestOptions = {
     headers: {
       'Content-Type': 'application/json'
@@ -24,92 +27,116 @@ export class HttpRequest<T> {
 
   constructor(
     private url: string,
-    private options: HttpRequestOptions
+    private options: HttpRequestOptions,
+    private behavior: FetchBehavior = FetchBehavior.simple
   ) { }
+
+  public cancel(): void {
+    this.disconnect();
+    if (this.observer) {
+      this.observer.complete();
+      this.observer = null;
+      this.observable = Observable
+        .create((observer: Observer<T>) => {
+          this.observer = observer;
+        });
+    }
+
+  }
+
+  public disconnect(): void {
+    if (this.abortController !== null) {
+      this.abortController.abort();
+      this.abortController = new AbortController();
+    }
+
+  }
+
+  public reconfigure(
+    url: string,
+    options?: HttpRequestOptions,
+    behavior?: FetchBehavior
+  ) {
+    if (behavior) {
+      this.behavior = behavior;
+    }
+
+    this.url = url;
+
+    if (options) {
+      this.options = options;
+    }
+
+    this.send();
+  }
 
   public send(
     fetchBehavior: FetchBehavior = FetchBehavior.simple
   ): Observable<T> {
-    const abortController: AbortController = new AbortController();
-
-    if (this.connection !== null) {
-      this.connection.fetchAbort.abort();
-    }
-
-    this.connection = {
-      fetchAbort: abortController,
-      observable: this.requestObservable(fetchBehavior, abortController)
-    }
-
-    return this.connection.observable;
+    return this.fetch();
   }
 
-  public reconfigure(url: string, options: HttpRequestOptions = {}) {
-    this.url = url;
-    this.options = options;
+  private fetch(): Observable<T> {
+    this.disconnect();
+    const cleanUp: Subject<boolean> = new Subject();
+    const httpFetch = fetch(
+      this.url,
+      Object.assign(
+        Object.assign(
+          this.defaultRequestOptions, {
+            signal: this.abortController.signal
+          }
+
+        ), this.options
+      )
+
+    );
+
+    let behavior: Promise<any>;
+    switch (this.behavior) {
+      case FetchBehavior.stream: behavior = this.streamHandler(httpFetch); break;
+      default: behavior = this.simpleHandler(httpFetch); break;
+    }
+
+    behavior
+      .catch(
+        (exception) => {
+          if (exception instanceof DOMException) {
+            console.error(exception);
+            cleanUp.next(true);
+          } else {
+            console.error('unknown error');
+            cleanUp.next(true);
+          }
+
+        }
+
+      );
+
+    return this.observable
+      .pipe(takeUntil(cleanUp));
   }
 
-  private simpleHandler(httpFetch: Promise<any>, observer: Observer<T>): Promise<any> {
+  private simpleHandler(httpFetch: Promise<any>): Promise<any> {
     return httpFetch
       .then(response => response.json())
-      .then(response => observer.next(response))
+      .then(response => (<Observer<T>>this.observer).next(response))
   }
 
-  private streamHandler(httpFetch: Promise<any>, observer: Observer<T>): Promise<any> {
+  private streamHandler(httpFetch: Promise<any>): Promise<any> {
     return httpFetch.then(
       (httpConnection) => {
         return this.readableStream(
           httpConnection.body.getReader(),
-          observer
+          <Observer<T>>this.observer
         );
+
       }
+
     ).then(
       stream => stream
-    )
+    );
 
-  }
-
-  private requestObservable(fetchBehavior: FetchBehavior, fetchAbort: AbortController): Observable<T> {
-    const cleanUp: Subject<boolean> = new Subject();
-    const observable = Observable
-      .create((observer: Observer<T>) => {
-        const httpFetch = fetch(
-          this.url,
-          Object.assign(
-            Object.assign(
-              this.defaultRequestOptions, {
-                signal: fetchAbort.signal
-              }
-
-            ), this.options
-          )
-        );
-
-        let behavior: Promise<any>;
-        switch (fetchBehavior) {
-          case FetchBehavior.stream: behavior = this.streamHandler(httpFetch, observer); break;
-          default: behavior = this.simpleHandler(httpFetch, observer); break;
-        }
-
-        behavior
-          .catch(
-            (exception) => {
-              if (exception instanceof DOMException) {
-                console.error(exception);
-                cleanUp.next(true);
-              } else {
-                console.error('unknown error');
-                cleanUp.next(true);
-              }
-
-            }
-
-          );
-
-      });
-
-    return observable
-      .pipe(takeUntil(cleanUp));
   }
 
   private readableStream(
@@ -120,32 +147,36 @@ export class HttpRequest<T> {
       start: (controller: any) => {
         return next();
         function next(): any {
-          return reader.read().then(({ done, value }: any) => {
-            if (done) {
-              controller.close();
-              observer.complete();
-              return;
-            }
+          const decoder = new TextDecoder('utf-8');
 
-            controller.enqueue(value);
-            let decodedValue: string;
+          return reader
+            .read()
+            .then(
+              ({ done,
+                value }: any) => {
+                if (done) {
+                  controller.close();
+                  observer.complete();
+                  return;
+                }
 
-            try {
-              decodedValue = new TextDecoder('utf-8').decode(value);
+                controller.enqueue(value);
+                try {
+                  const decodedValue: string = decoder.decode(value);
+                  try {
+                    observer.next(JSON.parse(decodedValue));
+                  } catch {
+                    console.error('decoded response not json', decodedValue);
+                  }
 
-              try {
-                observer.next(JSON.parse(decodedValue));
+                } catch {
+                  console.error('response not utf-8');
+                }
 
-              } catch {
-                console.error('decoded response not json', decodedValue);
+                return next();
               }
 
-            } catch {
-              console.error('response not utf-8');
-            }
-
-            return next();
-          })
+            );
 
         }
 
@@ -155,7 +186,7 @@ export class HttpRequest<T> {
         console.log('stream cancelled');
       }
 
-    })
+    });
 
   }
 

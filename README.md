@@ -21,11 +21,10 @@ let person = new HttpRequest<Person>(
     body: JSON.stringify({
       'id': 1
     })
-  }
+    
+  }, FetchBehavior.stream
 )
-.send(
-  FetchBehavior.stream
-)
+.send()
 .subscribe(
   (incoming_data: Person) => console.log('got person: ', incoming_data);
 );

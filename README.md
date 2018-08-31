@@ -1,5 +1,5 @@
 # 👋 RxHttp
-HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' simple request/response. Powered by RxJS.
+HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' fashioned request/response. Powered by RxJS. Less is more!
 
 ### Features:
 🌊 Long-lived real-time JSON streams  

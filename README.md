@@ -2,9 +2,9 @@
 HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' simple request/response. Powered by RxJS.
 
 ### Features:
-💪 Strongly typed responses  
+🌊 Long-lived real-time JSON streams  
 🚁 In-flight configuration changes  
-🌊 Long-lived real-time JSON streams
+💪 Strongly typed responses  
 
 ### Coming soon:
 🆘 Retry facilities  

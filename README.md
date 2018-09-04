@@ -34,7 +34,7 @@ let person = new HttpRequest<Person>(
     
   }, FetchBehavior.stream
 )
-.send()
+.fetch()
 .subscribe(
   (incoming_data: Person) => console.log('got person: ', incoming_data);
 );
@@ -64,7 +64,7 @@ new HttpRequest<any>(
   }
   
 )
-.send()
+.fetch()
 .subscribe(
   (incoming_data: any) => console.log('received response, connection closed', incoming_data);
 );

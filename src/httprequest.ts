@@ -1,23 +1,39 @@
-import { Observable, Observer, Subscription, Subject } from 'rxjs';
-import { take, takeUntil } from 'rxjs/operators';
-import { TextEncoder, TextDecoder } from 'text-encoding-shim';
+import { Observable, Observer, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { TextDecoder } from 'text-encoding-shim';
 import { ReadableStreamDefaultReader } from 'whatwg-streams';
 import { ReadableStream } from '@mattiasbuelens/web-streams-polyfill/ponyfill';
 
 import {
   FetchBehavior,
-  HttpRequestHeaders,
   HttpRequestOptions
 } from './types';
 
+/**
+ * Main class to implement Rxhttp
+ *
+ * @param T <T> Generic type parameter.
+ */
 export class HttpRequest<T> {
+  /**
+   * Default implemetation of AbortController from Web API.
+   */
   private abortController: AbortController = new AbortController();
+  /**
+   * Default implemetation of Observer from rxjs.
+   */
   private observer: Observer<T> | null = null;
+  /**
+   * Default implemetation of Observable from rxjs.
+   */
   private observable: Observable<T> = Observable
     .create((observer: Observer<T>) => {
       this.observer = observer;
     });
 
+  /**
+   * Default implemetation of Content-Type option for request.
+   */
   private defaultRequestOptions: HttpRequestOptions = {
     headers: {
       'Content-Type': 'application/json'
@@ -25,12 +41,22 @@ export class HttpRequest<T> {
 
   }
 
+  /**
+   * Constructor.
+   *
+   * @param url Server URL that will be used for the request.
+   * @param options Options that will be sent in request.
+   * @param behavior Behavior for request.
+   */
   constructor(
     private url: string,
     private options: HttpRequestOptions,
     private behavior: FetchBehavior = FetchBehavior.simple
   ) { }
 
+  /**
+   * cancel() Call disconnect function and create a new Observable that will subscribe a empty observer to it.
+   */
   public cancel(): void {
     this.disconnect();
     if (this.observer) {
@@ -44,6 +70,10 @@ export class HttpRequest<T> {
 
   }
 
+  /**
+   * disconnnect() Aborts a DOM request before it has completed.
+   * This is able to abort fetch requests, consumption of any response Body, and streams.
+   */
   public disconnect(): void {
     if (this.abortController !== null) {
       this.abortController.abort();
@@ -52,7 +82,46 @@ export class HttpRequest<T> {
 
   }
 
-  public fetch(): Observable<T> {
+  /**
+   * reconfigure() Request in-flight. Change URL, method, body, headers, ...
+   *
+   * @param url Server URL that will be used for the request.
+   * @param options Options that will be sent in request.
+   * @param behavior Behavior for request.
+   */
+  public reconfigure(
+    url: string,
+    options?: HttpRequestOptions,
+    behavior?: FetchBehavior
+  ) {
+    if (behavior) {
+      this.behavior = behavior;
+    }
+
+    this.url = url;
+
+    if (options) {
+      this.options = options;
+    }
+
+    this.fetch();
+  }
+
+  /**
+   * send() Call fetch()
+   *
+   * @param fetchBehavior
+   */
+  public send(
+    fetchBehavior: FetchBehavior = FetchBehavior.simple
+  ): Observable<T> {
+    return this.fetch();
+  }
+
+  /**
+   * fetch()
+   */
+  private fetch(): Observable<T> {
     this.disconnect();
     const cleanUp: Subject<boolean> = new Subject();
     const httpFetch = fetch(
@@ -93,30 +162,22 @@ export class HttpRequest<T> {
       .pipe(takeUntil(cleanUp));
   }
 
-  public reconfigure(
-    url: string,
-    options?: HttpRequestOptions,
-    behavior?: FetchBehavior
-  ) {
-    if (behavior) {
-      this.behavior = behavior;
-    }
-
-    this.url = url;
-
-    if (options) {
-      this.options = options;
-    }
-
-    this.fetch();
-  }
-
+  /**
+   * simpleHandler() Handle solved promise from simple
+   *
+   * @param httpFetch Promise to handle
+   */
   private simpleHandler(httpFetch: Promise<any>): Promise<any> {
     return httpFetch
       .then(response => response.json())
       .then(response => (<Observer<T>>this.observer).next(response))
   }
 
+  /**
+   * streamHandler() Handle solved promise from stream
+   *
+   * @param httpFetch Promise to handle
+   */
   private streamHandler(httpFetch: Promise<any>): Promise<any> {
     return httpFetch.then(
       (httpConnection) => {
@@ -133,6 +194,12 @@ export class HttpRequest<T> {
 
   }
 
+  /**
+   * readableStream()
+   *
+   * @param reader
+   * @param observer
+   */
   private readableStream(
     reader: ReadableStreamDefaultReader,
     observer: Observer<T>

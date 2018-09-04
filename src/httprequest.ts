@@ -70,9 +70,7 @@ export class HttpRequest<T> {
     this.send();
   }
 
-  public send(
-    fetchBehavior: FetchBehavior = FetchBehavior.simple
-  ): Observable<T> {
+  public send(): Observable<T> {
     return this.fetch();
   }
 

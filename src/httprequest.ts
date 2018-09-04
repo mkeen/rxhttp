@@ -104,7 +104,7 @@ export class HttpRequest<T> {
       this.options = options;
     }
 
-    this.send();
+    this.fetch();
   }
 
   /**

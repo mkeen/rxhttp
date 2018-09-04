@@ -1,17 +1,19 @@
-# RxHttp
-HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' simple request/response. Powered by RxJS.
+# 👋 RxHttp
+HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' fashioned request/response. Powered by RxJS.
 
 ### Features:
-💪 Strongly typed responses  
+🌊 Long-lived real-time JSON streams  
 🚁 In-flight configuration changes  
-🌊 Long-lived JSON streams
+💪 Strongly typed responses  
 
 ### Coming soon:
 🆘 Retry facilities  
 📜 Documentation  
 💯 Test coverage
 
-install: `npm install @mkeen/rxhttp`
+https://www.npmjs.com/package/@mkeen/rxhttp  
+
+install: `yarn add @mkeen/rxhttp`
 
 ex: 
 

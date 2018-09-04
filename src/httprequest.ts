@@ -52,29 +52,7 @@ export class HttpRequest<T> {
 
   }
 
-  public reconfigure(
-    url: string,
-    options?: HttpRequestOptions,
-    behavior?: FetchBehavior
-  ) {
-    if (behavior) {
-      this.behavior = behavior;
-    }
-
-    this.url = url;
-
-    if (options) {
-      this.options = options;
-    }
-
-    this.send();
-  }
-
-  public send(): Observable<T> {
-    return this.fetch();
-  }
-
-  private fetch(): Observable<T> {
+  public fetch(): Observable<T> {
     this.disconnect();
     const cleanUp: Subject<boolean> = new Subject();
     const httpFetch = fetch(
@@ -113,6 +91,24 @@ export class HttpRequest<T> {
 
     return this.observable
       .pipe(takeUntil(cleanUp));
+  }
+
+  public reconfigure(
+    url: string,
+    options?: HttpRequestOptions,
+    behavior?: FetchBehavior
+  ) {
+    if (behavior) {
+      this.behavior = behavior;
+    }
+
+    this.url = url;
+
+    if (options) {
+      this.options = options;
+    }
+
+    this.fetch();
   }
 
   private simpleHandler(httpFetch: Promise<any>): Promise<any> {

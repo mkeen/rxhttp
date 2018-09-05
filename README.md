@@ -14,7 +14,9 @@ https://www.npmjs.com/package/@mkeen/rxhttp
 
 install: `yarn add @mkeen/rxhttp`
 
-ex: 
+generate docs: `yarn run doc`
+
+### Examples
 
 ```
 import { HttpRequest, FetchBehavior } from '@mkeen/rxhttp';
@@ -51,9 +53,8 @@ person.reconfigure('https://localhost/person', {
 got person: , ...
 got person: , ...
 ```
-
-As simple as it gets:
-
+  
+  
 ```
 import { HttpRequest } from '@mkeen/rxhttp';
 

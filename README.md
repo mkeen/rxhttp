@@ -1,12 +1,12 @@
 # 👋 RxHttp
 HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' fashioned request/response. Powered by RxJS.
 
-### Features:
+### Features
 🌊 Long-lived real-time JSON streams  
 🚁 In-flight configuration changes  
 💪 Strongly typed responses  
 
-### Coming soon:
+### Coming Soon
 🆘 Retry facilities  
 💯 Test coverage
 

@@ -10,29 +10,22 @@ import {
 } from './types';
 
 /**
- * Main class to implement Rxhttp
- *
- * @param T <T> Generic type parameter.
+ * Class for managing an HTTP request. Supports two different behaviors:
+ *   - Simple (good ol' fashioned 1:1 request response)
+ *   - Stream (Opens a connection and receives a stream of json objects)
+ * @param T <T> Expected type of response data
  */
 export class HttpRequest<T> {
-  /**
-   * Default implemetation of AbortController from Web API.
-   */
   private abortController: AbortController = new AbortController();
-  /**
-   * Default implemetation of Observer from rxjs.
-   */
   private observer: Observer<T> | null = null;
-  /**
-   * Default implemetation of Observable from rxjs.
-   */
   private observable: Observable<T> = Observable
     .create((observer: Observer<T>) => {
       this.observer = observer;
     });
 
   /**
-   * Default implemetation of Content-Type option for request.
+   * Any configuration options specified here are un-overridable.
+   * JSON is the only supported content-type.
    */
   private defaultRequestOptions: HttpRequestOptions = {
     headers: {
@@ -44,9 +37,9 @@ export class HttpRequest<T> {
   /**
    * Constructor.
    *
-   * @param url Server URL that will be used for the request.
-   * @param options Options that will be sent in request.
-   * @param behavior Behavior for request.
+   * @param url Server URL that will be used for the request
+   * @param options Configuration options
+   * @param behavior Behavior for request (basic, or stream)
    */
   constructor(
     private url: string,
@@ -55,7 +48,7 @@ export class HttpRequest<T> {
   ) { }
 
   /**
-   * cancel() Call disconnect function and create a new Observable that will subscribe a empty observer to it.
+   * cancel() Cancels the current request
    */
   public cancel(): void {
     this.disconnect();
@@ -71,8 +64,7 @@ export class HttpRequest<T> {
   }
 
   /**
-   * disconnnect() Aborts a DOM request before it has completed.
-   * This is able to abort fetch requests, consumption of any response Body, and streams.
+   * disconnnect() Closes an active HTTP stream
    */
   public disconnect(): void {
     if (this.abortController !== null) {
@@ -85,9 +77,9 @@ export class HttpRequest<T> {
   /**
    * reconfigure() Request in-flight. Change URL, method, body, headers, ...
    *
-   * @param url Server URL that will be used for the request.
-   * @param options Options that will be sent in request.
-   * @param behavior Behavior for request.
+   * @param url Server URL that will be used for the request
+   * @param options Configuration options
+   * @param behavior Behavior for request (basic, or stream)
    */
   public reconfigure(
     url: string,
@@ -108,20 +100,9 @@ export class HttpRequest<T> {
   }
 
   /**
-   * send() Call fetch()
-   *
-   * @param fetchBehavior
+   * fetch() Put the request in motion. Subscribe to return value.
    */
-  public send(
-    fetchBehavior: FetchBehavior = FetchBehavior.simple
-  ): Observable<T> {
-    return this.fetch();
-  }
-
-  /**
-   * fetch()
-   */
-  private fetch(): Observable<T> {
+  public fetch(): Observable<T> {
     this.disconnect();
     const cleanUp: Subject<boolean> = new Subject();
     const httpFetch = fetch(
@@ -150,7 +131,7 @@ export class HttpRequest<T> {
             console.error(exception);
             cleanUp.next(true);
           } else {
-            console.error('unknown error');
+            console.error('unknown error', exception);
             cleanUp.next(true);
           }
 
@@ -163,7 +144,7 @@ export class HttpRequest<T> {
   }
 
   /**
-   * simpleHandler() Handle solved promise from simple
+   * simpleHandler() Handles a simple HTTP response containing JSON data
    *
    * @param httpFetch Promise to handle
    */
@@ -174,7 +155,7 @@ export class HttpRequest<T> {
   }
 
   /**
-   * streamHandler() Handle solved promise from stream
+   * streamHandler() Handles a long-lived HTTP stream
    *
    * @param httpFetch Promise to handle
    */
@@ -195,7 +176,8 @@ export class HttpRequest<T> {
   }
 
   /**
-   * readableStream()
+   * readableStream() Returns a preconfigured ReadableStream
+   * ReadableStream will decode utf-8 json and send the result to the observer.
    *
    * @param reader
    * @param observer
@@ -227,11 +209,11 @@ export class HttpRequest<T> {
                   try {
                     observer.next(JSON.parse(decodedValue));
                   } catch {
-                    console.error('decoded response not json', decodedValue);
+                    observer.error('decoded response not json ' + decodedValue);
                   }
 
                 } catch {
-                  console.error('response not utf-8');
+                  observer.error('response not utf-8');
                 }
 
                 return next();
@@ -244,6 +226,7 @@ export class HttpRequest<T> {
       },
 
       cancel: () => {
+        // I believe this will never be called since managed higher in stack. Need tests.
         console.log('stream cancelled');
       }
 

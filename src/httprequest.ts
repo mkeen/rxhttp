@@ -129,7 +129,10 @@ export class HttpRequest<T> {
         (exception) => {
           of(delay(this.retryTimeDelay()))
             .pipe(take(1))
-            .subscribe(this.fetch);
+            .subscribe(() => {
+              this.fetch();
+            });
+
         }
 
       );

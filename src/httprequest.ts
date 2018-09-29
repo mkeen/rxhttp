@@ -147,7 +147,7 @@ export class HttpRequest<T> {
    * servers that are under heavy load.
    */
   private retryTimeDelay(): number {
-    const range = [250, 1000];
+    const range = [2500, 10000];
     return Math.random() * (range[1] - range[0]) + range[0];
   }
 

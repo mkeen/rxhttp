@@ -1,6 +1,6 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Modern Fetch-Based HTTP Client",
   "keywords": [
     "http",
@@ -27,8 +27,8 @@
   "author": "Mike Keen",
   "license": "ISC",
   "dependencies": {
-    "rxjs": "^6.2.2",
     "@mattiasbuelens/web-streams-polyfill": "^0.1.0",
+    "rxjs": "^6.2.2",
     "text-encoding-shim": "^1.0.0",
     "whatwg-streams": "^0.1.1"
   },

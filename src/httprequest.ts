@@ -1,5 +1,5 @@
-import { Observable, Observer, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Observable, Observer, Subject, of } from 'rxjs';
+import { delay, take, takeUntil } from 'rxjs/operators';
 import { TextDecoder } from 'text-encoding-shim';
 import { ReadableStreamDefaultReader } from 'whatwg-streams';
 import { ReadableStream } from '@mattiasbuelens/web-streams-polyfill/ponyfill';
@@ -127,20 +127,25 @@ export class HttpRequest<T> {
     behavior
       .catch(
         (exception) => {
-          if (exception instanceof DOMException) {
-            console.error(exception);
-            cleanUp.next(true);
-          } else {
-            console.error('unknown error', exception);
-            cleanUp.next(true);
-          }
-
+          of(delay(this.retryTimeDelay()))
+            .pipe(take(1))
+            .subscribe(this.fetch);
         }
 
       );
 
     return this.observable
       .pipe(takeUntil(cleanUp));
+  }
+
+  /**
+   * retryTimeDelay() Returns a random whole number inside a predetermined range
+   * Used to determine how long to delay before a retry. This is to be nice to
+   * servers that are under heavy load.
+   */
+  private retryTimeDelay(): number {
+    const range = [250, 1000];
+    return Math.random() * (range[1] - range[0]) + range[0];
   }
 
   /**

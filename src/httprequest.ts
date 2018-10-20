@@ -127,7 +127,8 @@ export class HttpRequest<T> {
     behavior
       .catch(
         (exception) => {
-          of(delay(this.retryTimeDelay()))
+          of('')
+            .pipe(delay(this.retryTimeDelay()))
             .pipe(take(1))
             .subscribe(() => {
               this.fetch();
@@ -148,7 +149,9 @@ export class HttpRequest<T> {
    */
   private retryTimeDelay(): number {
     const range = [2500, 10000];
-    return Math.random() * (range[1] - range[0]) + range[0];
+    const delay = Math.random() * (range[1] - range[0]) + range[0];
+    console.log('delay', delay);
+    return delay;
   }
 
   /**

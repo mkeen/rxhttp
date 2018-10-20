@@ -1,6 +1,6 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "Modern Fetch-Based HTTP Client",
   "keywords": [
     "http",

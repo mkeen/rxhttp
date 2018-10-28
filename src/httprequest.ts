@@ -127,6 +127,7 @@ export class HttpRequest<T> {
     behavior
       .catch(
         (exception) => {
+          console.log(exception);
           of('')
             .pipe(delay(this.retryTimeDelay()))
             .pipe(take(1))
@@ -150,7 +151,6 @@ export class HttpRequest<T> {
   private retryTimeDelay(): number {
     const range = [2500, 10000];
     const delay = Math.random() * (range[1] - range[0]) + range[0];
-    console.log('delay', delay);
     return delay;
   }
 
@@ -220,7 +220,7 @@ export class HttpRequest<T> {
                   try {
                     observer.next(JSON.parse(decodedValue));
                   } catch {
-                    observer.error('decoded response not json ' + decodedValue);
+                    console.log('decoded response not json ', decodedValue);
                   }
 
                 } catch {

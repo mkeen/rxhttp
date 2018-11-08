@@ -125,19 +125,17 @@ export class HttpRequest<T> {
     }
 
     behavior
-      .catch(
-        (exception) => {
-          console.log(exception);
-          of('')
-            .pipe(delay(this.retryTimeDelay()))
-            .pipe(take(1))
-            .subscribe(() => {
-              this.fetch();
-            });
+      .catch(exception => {
+        console.log(exception, "going to retry");
+        of(exception)
+          .pipe(
+            take(1),
+            delay(this.retryTimeDelay())
+          ).subscribe(() => {
+            this.fetch();
+          });
 
-        }
-
-      );
+      });
 
     return this.observable
       .pipe(takeUntil(cleanUp));
@@ -224,7 +222,7 @@ export class HttpRequest<T> {
                   }
 
                 } catch {
-                  observer.error('response not utf-8');
+                  observer.error('response not utf-8 encoded, ' + value);
                 }
 
                 return next();

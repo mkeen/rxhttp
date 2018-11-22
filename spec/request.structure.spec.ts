@@ -41,4 +41,13 @@ describe('HttpRequest<TestDataType>', () => {
 
   });
 
+  it('generates a retry interval inside the range', () => {
+    for (var i = 0; i < 10000; i++) {
+      const delay = httpReq_Simple.retryTimeDelay();
+      expect(delay).toBeGreaterThanOrEqual(2500);
+      expect(delay).toBeLessThanOrEqual(10000);
+    }
+
+  });
+
 });

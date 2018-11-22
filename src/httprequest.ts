@@ -151,11 +151,8 @@ export class HttpRequest<T> {
    * Used to determine how long to delay before a retry. This is to be nice to
    * servers that are under heavy load.
    */
-  private retryTimeDelay(
-    min: number = 2500,
-    max: number = 10000
-  ): number {
-    const range = [min, max];
+  public retryTimeDelay(): number {
+    const range = [2500, 10000];
     const delay = Math.random() * (range[1] - range[0]) + range[0];
     return delay;
   }

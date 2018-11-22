@@ -3,6 +3,7 @@ import { delay, take, takeUntil } from 'rxjs/operators';
 import { TextDecoder } from 'text-encoding-shim';
 import { ReadableStreamDefaultReader } from 'whatwg-streams';
 import { ReadableStream } from '@mattiasbuelens/web-streams-polyfill/ponyfill';
+import 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only';
 
 import {
   FetchBehavior,
@@ -43,7 +44,7 @@ export class HttpRequest<T> {
    */
   constructor(
     private url: string,
-    private options: HttpRequestOptions,
+    private options: HttpRequestOptions = {},
     private behavior: FetchBehavior = FetchBehavior.simple
   ) { }
 
@@ -105,28 +106,15 @@ export class HttpRequest<T> {
   public fetch(): Observable<T> {
     this.disconnect();
     const cleanUp: Subject<boolean> = new Subject();
-    const httpFetch = fetch(
-      this.url,
-      Object.assign(
-        Object.assign(
-          this.defaultRequestOptions, {
-            signal: this.abortController.signal
-          }
+    const httpFetch = this._fetch();
 
-        ), this.options
-      )
-
-    );
-
-    let behavior: Promise<any>;
-    switch (this.behavior) {
-      case FetchBehavior.stream: behavior = this.streamHandler(httpFetch); break;
-      default: behavior = this.simpleHandler(httpFetch); break;
-    }
+    let behavior: Promise<any> =
+      this.behavior === FetchBehavior.stream
+        ? this.streamHandler(httpFetch)
+        : this.simpleHandler(httpFetch);
 
     behavior
       .catch(exception => {
-        console.log(exception, "going to retry");
         of(exception)
           .pipe(
             take(1),
@@ -141,13 +129,33 @@ export class HttpRequest<T> {
       .pipe(takeUntil(cleanUp));
   }
 
+  public _fetch(): Promise<Response> {
+    return fetch(
+      this.url,
+      Object.assign(
+        Object.assign(
+          this.defaultRequestOptions, {
+            signal: this.abortController.signal
+          }
+
+        ), this.options
+
+      )
+
+    );
+
+  }
+
   /**
    * retryTimeDelay() Returns a random whole number inside a predetermined range
    * Used to determine how long to delay before a retry. This is to be nice to
    * servers that are under heavy load.
    */
-  private retryTimeDelay(): number {
-    const range = [2500, 10000];
+  private retryTimeDelay(
+    min: number = 2500,
+    max: number = 10000
+  ): number {
+    const range = [min, max];
     const delay = Math.random() * (range[1] - range[0]) + range[0];
     return delay;
   }

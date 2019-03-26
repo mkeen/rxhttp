@@ -37,7 +37,7 @@ let person = new HttpRequest<Person>(
 )
 .fetch()
 .subscribe(
-  (incoming_data: Person) => console.log('got person: ', incoming_data);
+  (incoming_data: Person) => console.log('got person: ', incoming_data)
 );
 
 // Reconfigure the request in-flight. Change URL, method, body, headers, whatever...

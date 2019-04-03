@@ -1,3 +1,4 @@
+import 'abortcontroller-polyfill';
 import { Observable, Observer, Subject, of } from 'rxjs';
 import { delay, take, takeUntil } from 'rxjs/operators';
 import { merge } from 'lodash';

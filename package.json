@@ -1,6 +1,6 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Modern Fetch-Based HTTP Client",
   "keywords": [
     "http",
@@ -27,22 +27,16 @@
   "author": "Mike Keen",
   "license": "ISC",
   "dependencies": {
-    "@mattiasbuelens/web-streams-polyfill": "^0.1.0",
-    "@types/whatwg-fetch": "^0.0.33",
-    "abortcontroller-polyfill": "^1.1.9",
-    "rxjs": "^6.2.2",
-    "text-encoding-shim": "^1.0.0",
-    "whatwg-fetch": "^3.0.0",
-    "whatwg-streams": "^0.1.1"
+    "lodash.merge": "^4.6.1",
+    "rxjs": "^6.2.2"
   },
   "devDependencies": {
-    "@types/jasmine": "^3.3.0",
     "jasmine": "^3.3.0",
     "jasmine-marbles": "^0.4.0",
     "jasmine-ts": "^0.3.0",
     "ts-loader": "4.4.1",
     "ts-node": "^7.0.1",
     "typedoc": "^0.12.0",
-    "typescript": "^2.9.2"
+    "typescript": "3.4.1"
   }
 }

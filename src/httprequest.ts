@@ -1,9 +1,6 @@
 import { Observable, Observer, Subject, of } from 'rxjs';
 import { delay, take, takeUntil } from 'rxjs/operators';
-import { TextDecoder } from 'text-encoding-shim';
-import { ReadableStreamDefaultReader } from 'whatwg-streams';
-import { ReadableStream } from '@mattiasbuelens/web-streams-polyfill/ponyfill';
-import 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only';
+import { merge } from 'lodash';
 
 import {
   FetchBehavior,
@@ -132,8 +129,8 @@ export class HttpRequest<T> {
   public _fetch(): Promise<Response> {
     return fetch(
       this.url,
-      Object.assign(
-        Object.assign(
+      merge(
+        merge(
           this.defaultRequestOptions, {
             signal: this.abortController.signal
           }
@@ -152,7 +149,7 @@ export class HttpRequest<T> {
    * servers that are under heavy load.
    */
   public retryTimeDelay(): number {
-    const range = [2500, 10000];
+    const range: any = [2500, 10000];
     const delay = Math.random() * (range[1] - range[0]) + range[0];
     return delay;
   }
@@ -223,11 +220,11 @@ export class HttpRequest<T> {
                   try {
                     observer.next(JSON.parse(decodedValue));
                   } catch {
-                    console.log('decoded response not json ', decodedValue);
+                    console.log('decoded response (ignored) not json ', decodedValue);
                   }
 
                 } catch {
-                  observer.error('response not utf-8 encoded, ' + value);
+                  console.log('response (ignored) not utf-8 encoded, ' + value);
                 }
 
                 return next();

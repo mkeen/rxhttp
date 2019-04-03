@@ -8,7 +8,7 @@ HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good
 🆘 Load-optimized retries  
 
 ### Coming Soon
-💯 Test coverage
+💯 Integration tests with test server
 
 https://www.npmjs.com/package/@mkeen/rxhttp  
 
@@ -37,7 +37,7 @@ let person = new HttpRequest<Person>(
 )
 .fetch()
 .subscribe(
-  (incoming_data: Person) => console.log('got person: ', incoming_data);
+  (incoming_data: Person) => console.log('got person: ', incoming_data)
 );
 
 // Reconfigure the request in-flight. Change URL, method, body, headers, whatever...

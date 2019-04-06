@@ -1,11 +1,11 @@
-import 'abortcontroller-polyfill';
-import { Observable, Observer, Subject, of } from 'rxjs';
-import { delay, take, takeUntil } from 'rxjs/operators';
 import { merge } from 'lodash';
+import { delay, take, takeUntil } from 'rxjs/operators';
+import { Observable, Observer, Subject, BehaviorSubject, of } from 'rxjs';
 
 import {
   FetchBehavior,
-  HttpRequestOptions
+  HttpRequestOptions,
+  HttpSessionCookies
 } from './types';
 
 /**
@@ -29,8 +29,9 @@ export class HttpRequest<T> {
   private defaultRequestOptions: HttpRequestOptions = {
     headers: {
       'Content-Type': 'application/json'
-    }
+    },
 
+    credentials: 'include'
   }
 
   /**
@@ -128,18 +129,19 @@ export class HttpRequest<T> {
   }
 
   public _fetch(): Promise<Response> {
+    let config = merge(
+      merge(
+        this.defaultRequestOptions, {
+          signal: this.abortController.signal
+        }
+
+      ), this.options
+
+    );
+
     return fetch(
       this.url,
-      merge(
-        merge(
-          this.defaultRequestOptions, {
-            signal: this.abortController.signal
-          }
-
-        ), this.options
-
-      )
-
+      config
     );
 
   }
@@ -163,7 +165,7 @@ export class HttpRequest<T> {
   private simpleHandler(httpFetch: Promise<any>): Promise<any> {
     return httpFetch
       .then(response => response.json())
-      .then(response => (<Observer<T>>this.observer).next(response))
+      .then(response => (<Observer<T>>this.observer).next(response));
   }
 
   /**

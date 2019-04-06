@@ -9,6 +9,13 @@ export type HttpRequestHeaders = {} & {
 }
 
 /**
+ * Cookie  type. Only constraints are that keys and values are both strings.
+ */
+export type HttpSessionCookies = {} & {
+  [prop: string]: string;
+}
+
+/**
  * Configuration for HttpRequest
  */
 export interface HttpRequestOptions {
@@ -16,6 +23,9 @@ export interface HttpRequestOptions {
   method?: string;
   body?: string;
   retry?: boolean;
+  credentials?: string;
+  referer?: string;
+  referrerPolicy?: string;
 }
 
 export enum FetchBehavior {

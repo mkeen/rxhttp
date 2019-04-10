@@ -67,11 +67,7 @@ export class HttpRequest<T> {
    * disconnnect() Closes an active HTTP stream
    */
   public disconnect(): void {
-    if (this.abortController !== null) {
-      this.abortController.abort();
-      this.abortController = new AbortController();
-    }
-
+    this.abortController.abort();
   }
 
   /**
@@ -96,14 +92,13 @@ export class HttpRequest<T> {
       this.options = options;
     }
 
-    this.fetch();
+    this.disconnect();
   }
 
   /**
    * fetch() Put the request in motion. Subscribe to return value.
    */
   public fetch(): Observable<T> {
-    this.disconnect();
     const cleanUp: Subject<boolean> = new Subject();
     const httpFetch = this._fetch();
 
@@ -128,7 +123,7 @@ export class HttpRequest<T> {
       .pipe(takeUntil(cleanUp));
   }
 
-  public _fetch(): Promise<Response> {
+  public _fetch(): Promise<void | Response> {
     let config = merge(
       merge(
         this.defaultRequestOptions, {
@@ -142,7 +137,21 @@ export class HttpRequest<T> {
     return fetch(
       this.url,
       config
-    );
+    ).catch((e) => {
+      console.log("caught", e);
+      if (e.code === 20) {
+        this.abortController = new AbortController();
+        of(e)
+          .pipe(
+            take(1),
+            delay(this.retryTimeDelay())
+          ).subscribe(() => {
+            //console.log("new fetch");
+            //this._fetch();
+          });
+      }
+
+    });
 
   }
 
@@ -223,7 +232,7 @@ export class HttpRequest<T> {
                   try {
                     observer.next(JSON.parse(decodedValue));
                   } catch {
-                    console.log('decoded response (ignored) not json ', decodedValue);
+                    console.log('decoded response (ignored) not json ' + value);
                   }
 
                 } catch {

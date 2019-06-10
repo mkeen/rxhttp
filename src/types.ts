@@ -30,5 +30,6 @@ export interface HttpRequestOptions {
 
 export enum FetchBehavior {
   stream = 'stream',
-  simple = 'simple'
+  simple = 'simple',
+  simpleWithHeaders = 'simpleWithHeaders'
 }

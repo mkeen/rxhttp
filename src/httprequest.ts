@@ -1,6 +1,13 @@
 import { merge } from 'lodash';
 import { delay, take, takeUntil } from 'rxjs/operators';
 import { Observable, Observer, Subject, BehaviorSubject, of } from 'rxjs';
+const { AbortController, abortableFetch } = require('abortcontroller-polyfill/dist/cjs-ponyfill');
+import fetch from 'cross-fetch';
+const fs = require('fs');
+
+const {
+  Readable
+} = require('readable-stream')
 
 import {
   FetchBehavior,
@@ -28,10 +35,10 @@ export class HttpRequest<T> {
    */
   private defaultRequestOptions: HttpRequestOptions = {
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
 
-    credentials: 'include'
+    //credentials: 'include'
   }
 
   /**
@@ -67,7 +74,10 @@ export class HttpRequest<T> {
    * disconnnect() Closes an active HTTP stream
    */
   public disconnect(): void {
-    this.abortController.abort();
+    if (typeof (process) !== 'object') {
+      this.abortController.abort();
+    }
+
   }
 
   /**
@@ -105,17 +115,16 @@ export class HttpRequest<T> {
     let behavior: Promise<any> =
       this.behavior === FetchBehavior.stream
         ? this.streamHandler(httpFetch)
-        : this.simpleHandler(httpFetch);
+        : (this.behavior === FetchBehavior.simple
+          ? this.simpleHandler(httpFetch)
+          : this.simpleHandlerWithHeaders(httpFetch));
 
     behavior
       .catch(exception => {
-        of(exception)
-          .pipe(
-            take(1),
-            delay(this.retryTimeDelay())
-          ).subscribe(() => {
-            this.fetch();
-          });
+        console.log(exception, "exception");
+        if (this.observer) {
+          this.observer.error(new Error("error"));
+        }
 
       });
 
@@ -137,21 +146,7 @@ export class HttpRequest<T> {
     return fetch(
       this.url,
       config
-    ).catch((e) => {
-      console.log("caught", e);
-      if (e.code === 20) {
-        this.abortController = new AbortController();
-        of(e)
-          .pipe(
-            take(1),
-            delay(this.retryTimeDelay())
-          ).subscribe(() => {
-            //console.log("new fetch");
-            //this._fetch();
-          });
-      }
-
-    });
+    );
 
   }
 
@@ -174,7 +169,22 @@ export class HttpRequest<T> {
   private simpleHandler(httpFetch: Promise<any>): Promise<any> {
     return httpFetch
       .then(response => response.json())
-      .then(response => (<Observer<T>>this.observer).next(response));
+      .then(response => {
+        (<Observer<T>>this.observer).next(response)
+      });
+  }
+
+  /**
+   * simpleHandlerWithHeaders() Handles a simple HTTP response containing JSON data and
+   * includes headers with the response
+   *
+   * @param httpFetch Promise to handle
+   */
+  private simpleHandlerWithHeaders(httpFetch: Promise<any>): Promise<any> {
+    return httpFetch
+      .then(response => {
+        (<Observer<any>>this.observer).next([response.json(), response.headers])
+      });
   }
 
   /**
@@ -185,10 +195,24 @@ export class HttpRequest<T> {
   private streamHandler(httpFetch: Promise<any>): Promise<any> {
     return httpFetch.then(
       (httpConnection) => {
-        return this.readableStream(
-          httpConnection.body.getReader(),
-          <Observer<T>>this.observer
-        );
+        try {
+          return this.readableStream(
+            httpConnection.body.getReader(),
+            <Observer<T>>this.observer
+          );
+
+        } catch (e) {
+          httpConnection.body.on('data', (bytes: any) => {
+            try {
+              let val = Buffer.from(bytes).toString('utf-8');
+              (<Observer<T>>this.observer).next(JSON.parse(val));
+            } catch (e2) {
+              console.log("ignored bytes");
+            }
+
+          });
+
+        }
 
       }
 
@@ -209,7 +233,7 @@ export class HttpRequest<T> {
     reader: ReadableStreamDefaultReader,
     observer: Observer<T>
   ): ReadableStream {
-    return new ReadableStream({
+    return new Readable({
       start: (controller: any) => {
         return next();
         function next(): any {

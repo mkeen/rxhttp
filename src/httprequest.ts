@@ -1,13 +1,8 @@
 import { merge } from 'lodash';
 import { delay, take, takeUntil } from 'rxjs/operators';
 import { Observable, Observer, Subject, BehaviorSubject, of } from 'rxjs';
-const { AbortController, abortableFetch } = require('abortcontroller-polyfill/dist/cjs-ponyfill');
+const { AbortController } = require('abortcontroller-polyfill/dist/cjs-ponyfill');
 import fetch from 'cross-fetch';
-const fs = require('fs');
-
-const {
-  Readable
-} = require('readable-stream')
 
 import {
   FetchBehavior,
@@ -183,8 +178,16 @@ export class HttpRequest<T> {
   private simpleHandlerWithHeaders(httpFetch: Promise<any>): Promise<any> {
     return httpFetch
       .then(response => {
-        (<Observer<any>>this.observer).next([response.json(), response.headers])
+        response.json().then((json: T) => {
+          (<Observer<any>>this.observer).next({
+            response: json,
+            headers: response.headers
+          });
+
+        });
+
       });
+
   }
 
   /**
@@ -233,7 +236,7 @@ export class HttpRequest<T> {
     reader: ReadableStreamDefaultReader,
     observer: Observer<T>
   ): ReadableStream {
-    return new Readable({
+    return new ReadableStream({
       start: (controller: any) => {
         return next();
         function next(): any {

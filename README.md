@@ -6,6 +6,7 @@ HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good
 🚁 In-flight configuration changes  
 💪 Typed responses  
 🆘 Load-optimized retries  
+📀 Universal support (NodeJS + Browser)
 
 ### Coming Soon
 💯 Integration tests with test server

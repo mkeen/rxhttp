@@ -1,2 +1,2 @@
 export { HttpRequest } from './httprequest';
-export { HttpRequestOptions, FetchBehavior, HttpRequestHeaders } from './types';
+export { HttpRequestOptions, FetchBehavior, HttpRequestHeaders, HttpResponseWithHeaders } from './types';

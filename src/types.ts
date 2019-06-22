@@ -28,8 +28,17 @@ export interface HttpRequestOptions {
   referrerPolicy?: string;
 }
 
+export interface HttpResponseWithHeaders<T> {
+  headers: HttpRequestHeaders;
+  response: T;
+}
+
 export enum FetchBehavior {
   stream = 'stream',
   simple = 'simple',
   simpleWithHeaders = 'simpleWithHeaders'
+}
+
+export enum FetchError {
+  connectionRefused = 'connectionRefused'
 }

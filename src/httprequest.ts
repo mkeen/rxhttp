@@ -1,11 +1,11 @@
 import { merge } from 'lodash';
-import { delay, take, takeUntil } from 'rxjs/operators';
+import { delay, take, takeUntil, tap } from 'rxjs/operators';
 import { Observable, Observer, Subject, BehaviorSubject, of } from 'rxjs';
-const { AbortController } = require('abortcontroller-polyfill/dist/cjs-ponyfill');
-import fetch from 'cross-fetch';
+import { fetch as nodeFetch } from 'cross-fetch';
 
 import {
   FetchBehavior,
+  FetchError,
   HttpRequestOptions,
   HttpSessionCookies
 } from './types';
@@ -17,7 +17,9 @@ import {
  * @param T <T> Expected type of response data
  */
 export class HttpRequest<T> {
-  private abortController: AbortController = new AbortController();
+  private receivedBytes: boolean = false;
+  private abortController: any = typeof (process) !== 'object' ? new AbortController() : null;
+
   private observer: Observer<T> | null = null;
   private observable: Observable<T> = Observable
     .create((observer: Observer<T>) => {
@@ -33,7 +35,7 @@ export class HttpRequest<T> {
       'Content-Type': 'application/json',
     },
 
-    //credentials: 'include'
+    credentials: 'include' // todo: make this conditional for browser only
   }
 
   /**
@@ -53,6 +55,7 @@ export class HttpRequest<T> {
    * cancel() Cancels the current request
    */
   public cancel(): void {
+    console.log("cancel");
     this.disconnect();
     if (this.observer) {
       this.observer.complete();
@@ -69,8 +72,10 @@ export class HttpRequest<T> {
    * disconnnect() Closes an active HTTP stream
    */
   public disconnect(): void {
+    console.log("disconnect");
     if (typeof (process) !== 'object') {
       this.abortController.abort();
+      this.abortController = new AbortController();
     }
 
   }
@@ -97,6 +102,7 @@ export class HttpRequest<T> {
       this.options = options;
     }
 
+    console.log("reconfigure");
     this.disconnect();
   }
 
@@ -116,9 +122,30 @@ export class HttpRequest<T> {
 
     behavior
       .catch(exception => {
-        console.log(exception, "exception");
         if (this.observer) {
-          this.observer.error(new Error("error"));
+          if (exception instanceof TypeError) {
+            if (!this.receivedBytes) {
+              this.observer.error(FetchError.connectionRefused);
+              if (this.abortController) {
+                this.disconnect();
+              }
+
+            } else {
+              this.observer.complete();
+              if (this.abortController) {
+                this.disconnect();
+              }
+
+            }
+
+          } else {
+            this.observer.error(exception);
+            if (this.abortController) {
+              this.disconnect();
+            }
+
+          }
+
         }
 
       });
@@ -128,20 +155,39 @@ export class HttpRequest<T> {
   }
 
   public _fetch(): Promise<void | Response> {
-    let config = merge(
-      merge(
-        this.defaultRequestOptions, {
-          signal: this.abortController.signal
-        }
+    if (typeof (process) !== 'object') {
+      let config = merge(
+        merge(
+          this.defaultRequestOptions, {
+            signal: this.abortController.signal
+          }
 
-      ), this.options
+        ), this.options
 
-    );
+      );
 
-    return fetch(
-      this.url,
-      config
-    );
+      return fetch(
+        this.url,
+        config
+      );
+
+    } else {
+      let config = merge(
+        merge(
+          this.defaultRequestOptions, {
+            signal: undefined
+          }
+
+        ), this.options
+
+      );
+
+      return nodeFetch(
+        this.url,
+        config
+      );
+
+    }
 
   }
 
@@ -162,11 +208,21 @@ export class HttpRequest<T> {
    * @param httpFetch Promise to handle
    */
   private simpleHandler(httpFetch: Promise<any>): Promise<any> {
+    let error = false;
+
     return httpFetch
-      .then(response => response.json())
-      .then(response => {
-        (<Observer<T>>this.observer).next(response)
+      .then((response: Response) => {
+        error = response.status !== 200;
+        if (error) {
+          throw response.status;
+        }
+
+        return response.json();
+      })
+      .then(json => {
+        (<Observer<T>>this.observer).next(json);
       });
+
   }
 
   /**
@@ -198,19 +254,32 @@ export class HttpRequest<T> {
   private streamHandler(httpFetch: Promise<any>): Promise<any> {
     return httpFetch.then(
       (httpConnection) => {
+        if (!this.receivedBytes) {
+          this.receivedBytes = true;
+        }
+
         try {
+          // Web
           return this.readableStream(
             httpConnection.body.getReader(),
-            <Observer<T>>this.observer
+            <Observer<T>>this.observer,
+            this.abortController
           );
 
         } catch (e) {
+          // Nodejs
           httpConnection.body.on('data', (bytes: any) => {
             try {
               let val = Buffer.from(bytes).toString('utf-8');
-              (<Observer<T>>this.observer).next(JSON.parse(val));
-            } catch (e2) {
-              console.log("ignored bytes");
+              try {
+                const parsedJson = JSON.parse(val);
+                (<Observer<T>>this.observer).next(parsedJson);
+              } catch (e2) {
+                console.log('decoded response (ignored) not json (nodejs)' + val);
+              }
+
+            } catch (e3) {
+              console.log('response (ignored) not utf-8 encoded (nodejs)');
             }
 
           });
@@ -234,7 +303,8 @@ export class HttpRequest<T> {
    */
   private readableStream(
     reader: ReadableStreamDefaultReader,
-    observer: Observer<T>
+    observer: Observer<T>,
+    abortController: AbortController
   ): ReadableStream {
     return new ReadableStream({
       start: (controller: any) => {
@@ -248,6 +318,7 @@ export class HttpRequest<T> {
               ({ done,
                 value }: any) => {
                 if (done) {
+                  abortController.abort();
                   controller.close();
                   observer.complete();
                   return;
@@ -259,11 +330,11 @@ export class HttpRequest<T> {
                   try {
                     observer.next(JSON.parse(decodedValue));
                   } catch {
-                    console.log('decoded response (ignored) not json ' + value);
+                    console.log('decoded response (ignored) not json (browser) ' + value);
                   }
 
                 } catch {
-                  console.log('response (ignored) not utf-8 encoded, ' + value);
+                  console.log('response (ignored) not utf-8 encoded, (browser)' + value);
                 }
 
                 return next();

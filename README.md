@@ -5,10 +5,10 @@ HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good
 Fetch is the most modern API for making http requests (both long lived (streams) and traditional (simple). JSON is the best way to communicate with back end services. And RxJS is the best API for building, chaining, and consuming asyncronous requests. So, RxHttp was created! It is the back end for [rxcouch](https://www.npmjs.com/package/@mkeen/rxcouch), the dopest client and server side library for interacting with CouchDB.  
 
 ### Features
-📀 Universal support (NodeJS + Browser)  
-🌊 Long-lived real-time JSON streams (`ReadableStream` in Browser, `Buffer` in NodeJS)  
-💪 Typed responses  
-🆘 Simple error handling
+📀 **Universal** Works on both NodeJS and Browser
+🌊 **Real-time** Long-lived real-time JSON streams (`ReadableStream` in Browser, `Buffer` in NodeJS)  
+💪 **TypeScript first** Typed responses  
+🆘 **Simple lifecycle** Simple request lifecycle uses `Observable` callback functions (`next`, `error`, and `complete`)
 
 ### Install
 `npm install @mkeen/rxhttp`  

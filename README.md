@@ -8,7 +8,7 @@ HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good
 🆘 Simple error handling
 
 ### Install
-`npm install @mkeen/rxhttp`
+`npm install @mkeen/rxhttp`  
 https://www.npmjs.com/package/@mkeen/rxhttp  
 
 ### Generate Docs
@@ -17,7 +17,7 @@ https://www.npmjs.com/package/@mkeen/rxhttp
 ### Streaming Request Example
 
 ```typescript
-import { HttpRequest                                            // Base class you'll interact with
+import { HttpRequest,                                           // Base class you'll interact with
 FetchBehavior                                                   // Toggle simple (req/response) vs stream
 } from '@mkeen/rxhttp';               
 

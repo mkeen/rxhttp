@@ -2,9 +2,12 @@
 HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' fashioned request/response. Powered by RxJS. Requests are automatically retried indefinitely and optimized (staggererd) for high-load use-cases. Retries can be transparent to your implementation. By default, the observable will give you data whenever the request succeeds.
 
 ### Features
-📀 Universal support (NodeJS + Browser)
-🌊 Long-lived real-time JSON streams (`ReadableStream` in Browser, `Buffer` in NodeJS)
-💪 Typed responses
+📀 Universal support (NodeJS + Browser)  
+
+🌊 Long-lived real-time JSON streams (`ReadableStream` in Browser, `Buffer` in NodeJS)  
+
+💪 Typed responses  
+
 🆘 Simple error handling
 
 https://www.npmjs.com/package/@mkeen/rxhttp  

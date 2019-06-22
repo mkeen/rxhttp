@@ -58,9 +58,9 @@ let personRequest = new HttpRequest<Person>(                   // When you initi
 );
 
 setTimeout(() => {
-  personRequest.reconfigure('https://localhost/person', {
-    method: 'POST',
-    body: JSON.stringify({
+  personRequest.reconfigure('https://localhost/person', {      // Changes request configuration (connection closes)
+    method: 'POST',                                            // but all data continues flowing to the original
+    body: JSON.stringify({                                     // `observer`.
       id: 2
     });
   
@@ -69,10 +69,10 @@ setTimeout(() => {
 }, 2000)
 
 // Output:
+got person: , {id: 1 ...                                       // Initial response frame
 got person: , {id: 1 ...
 got person: , {id: 1 ...
-got person: , {id: 1 ...
-got person: , {id: 2 ...
+got person: , {id: 2 ...                                       // Reconfigure has been run
 got person: , {id: 2 ...
 got person: , {id: 2 ...
 got person: , {id: 2 ...

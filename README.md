@@ -44,15 +44,15 @@ let personRequest = new HttpRequest<Person>(                   // When you initi
 )
 .fetch()
 .subscribe(
-  (incoming_data: Person) => {
+  (incoming_data: Person) => {                                 // Normal request response or stream frame
     console.log('got person: ', incoming_data);
   },
   
-  (error: any) => {
+  (error: any) => {                                            // Error will be an http error code
     console.error('connection issue');
   },
   
-  () => {
+  () => {                                                      // When request completes (conneciton closes)
     console.log('connection closed');
   }
 );

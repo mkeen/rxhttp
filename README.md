@@ -79,7 +79,7 @@ got person: , {id: 2 ...
 ```
   
 ### Simple (Request/Response) Request Example
-```
+```typescript
 import { HttpRequest } from '@mkeen/rxhttp';
 
 // This endpoint returns some json object

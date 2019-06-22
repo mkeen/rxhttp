@@ -1,5 +1,8 @@
 # 👋 RxHttp
-HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' fashioned request/response. Powered by RxJS. Requests are automatically retried indefinitely and optimized (staggererd) for high-load use-cases. Retries can be transparent to your implementation. By default, the observable will give you data whenever the request succeeds.
+HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' fashioned request/response. Powered by RxJS. Requests are automatically retried indefinitely and optimized (staggererd) for high-load use-cases. Retries can be transparent to your implementation. By default, the observable will give you data whenever the request succeeds.  
+  
+### Why?
+Fetch is the most modern API for making http requests (both long lived (streams) and traditional (simple). JSON is the best way to communicate with back end services. And RxJS is the best API for building, chaining, and consuming asyncronous requests. So, RxHttp was created! It is the back end for [rxcouch](https://www.npmjs.com/package/@mkeen/rxcouch), the dopest client and server side library for interacting with CouchDB.  
 
 ### Features
 📀 Universal support (NodeJS + Browser)  
@@ -94,3 +97,5 @@ new HttpRequest<any>(
 // Output:
 received response, connection closed , {...}
 ```
+  
+🇺🇸  

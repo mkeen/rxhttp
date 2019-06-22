@@ -3,11 +3,8 @@ HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good
 
 ### Features
 📀 Universal support (NodeJS + Browser)  
-
 🌊 Long-lived real-time JSON streams (`ReadableStream` in Browser, `Buffer` in NodeJS)  
-
 💪 Typed responses  
-
 🆘 Simple error handling
 
 https://www.npmjs.com/package/@mkeen/rxhttp  

@@ -8,8 +8,8 @@ HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good
 🆘 Simple error handling
 
 ### Install
-https://www.npmjs.com/package/@mkeen/rxhttp  
 `npm install @mkeen/rxhttp`
+https://www.npmjs.com/package/@mkeen/rxhttp  
 
 ### Generate Docs
 `yarn run doc`  

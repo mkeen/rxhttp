@@ -209,7 +209,7 @@ export class HttpRequest<T> {
 
     return httpFetch
       .then((response: Response) => {
-        error = response.status !== 200;
+        error = response.status < 200 && response.status > 299;
         if (error) {
           throw response.status;
         }

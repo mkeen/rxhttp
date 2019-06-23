@@ -55,7 +55,6 @@ export class HttpRequest<T> {
    * cancel() Cancels the current request
    */
   public cancel(): void {
-    console.log("cancel");
     this.disconnect();
     if (this.observer) {
       this.observer.complete();
@@ -72,7 +71,6 @@ export class HttpRequest<T> {
    * disconnnect() Closes an active HTTP stream
    */
   public disconnect(): void {
-    console.log("disconnect");
     if (typeof (process) !== 'object') {
       this.abortController.abort();
       this.abortController = new AbortController();
@@ -102,7 +100,6 @@ export class HttpRequest<T> {
       this.options = options;
     }
 
-    console.log("reconfigure");
     this.disconnect();
   }
 

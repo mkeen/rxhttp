@@ -249,6 +249,7 @@ export class HttpRequest<T> {
    * @param httpFetch Promise to handle
    */
   private streamHandler(httpFetch: Promise<any>): Promise<any> {
+    console.log("stream");
     return httpFetch.then(
       (httpConnection) => {
         if (!this.receivedBytes) {
@@ -266,17 +267,21 @@ export class HttpRequest<T> {
         } catch (e) {
           // Nodejs
           httpConnection.body.on('data', (bytes: any) => {
-            try {
-              let val = Buffer.from(bytes).toString('utf-8');
+            const buffer = Buffer.from(bytes);
+            if (buffer.length > 1) {
               try {
-                const parsedJson = JSON.parse(val);
-                (<Observer<T>>this.observer).next(parsedJson);
-              } catch (e2) {
-                console.log('decoded response (ignored) not json (nodejs)' + val);
+                const val = buffer.toString('utf-8');
+                try {
+                  const parsedJson = JSON.parse(val);
+                  (<Observer<T>>this.observer).next(parsedJson);
+                } catch (e2) {
+                  console.log('decoded response (ignored) not json (nodejs)', e2, bytes);
+                }
+
+              } catch (e3) {
+                console.log('response (ignored) not utf-8 encoded (nodejs)');
               }
 
-            } catch (e3) {
-              console.log('response (ignored) not utf-8 encoded (nodejs)');
             }
 
           });

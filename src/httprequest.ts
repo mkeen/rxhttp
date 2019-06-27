@@ -1,7 +1,7 @@
 import { merge } from 'lodash';
 import { delay, take, takeUntil, tap } from 'rxjs/operators';
 import { Observable, Observer, Subject, BehaviorSubject, of } from 'rxjs';
-import { fetch as nodeFetch } from 'cross-fetch';
+const nodeFetch = require('node-fetch');
 
 import {
   FetchBehavior,

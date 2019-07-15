@@ -1,10 +1,12 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.8.9",
+  "version": "1.8.10",
   "description": "Modern Fetch-Based HTTP Client",
   "keywords": [
     "http",
     "http-client",
+    "http-fetch",
+    "fetch",
     "rxjs6",
     "rxjs",
     "typescript",

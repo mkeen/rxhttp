@@ -1,6 +1,6 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.8.8",
+  "version": "1.8.9",
   "description": "Modern Fetch-Based HTTP Client",
   "keywords": [
     "http",
@@ -27,7 +27,7 @@
   "author": "Mike Keen",
   "license": "ISC",
   "dependencies": {
-    "lodash.merge": "^4.6.1",
+    "lodash.merge": "^4.6.2",
     "node-fetch": "^2.6.0",
     "rxjs": "^6.5.2",
     "buffer": "^5.2.1"

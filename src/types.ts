@@ -33,6 +33,11 @@ export interface HttpResponseWithHeaders<T> {
   response: T;
 }
 
+export interface ServerErrorResponse {
+  errorCode: number;
+  errorMessage: any;
+}
+
 export enum FetchBehavior {
   stream = 'stream',
   simple = 'simple',

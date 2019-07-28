@@ -1,13 +1,12 @@
 import { merge } from 'lodash';
-import { delay, take, takeUntil, tap } from 'rxjs/operators';
-import { Observable, Observer, Subject, BehaviorSubject, of } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { Observable, Observer, Subject } from 'rxjs';
 const nodeFetch = require('node-fetch');
 
 import {
   FetchBehavior,
   FetchError,
   HttpRequestOptions,
-  HttpSessionCookies
 } from './types';
 
 /**
@@ -211,10 +210,11 @@ export class HttpRequest<T> {
       .then((response: Response) => {
         error = response.status < 200 || response.status > 299;
         if (error) {
-          throw response.status;
+          throw { errorCode: response.status, errorMessage: response.json() };
+        } else {
+          return response.json();
         }
 
-        return response.json();
       })
       .then(json => {
         (<Observer<T>>this.observer).next(json);

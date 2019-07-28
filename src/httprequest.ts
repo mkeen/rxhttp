@@ -135,7 +135,22 @@ export class HttpRequest<T> {
             }
 
           } else {
-            this.observer.error(exception);
+            const errorCode = exception[0];
+            const errorMessagePromise = exception[1];
+
+            if (errorMessagePromise) {
+              errorMessagePromise.then((errorMessage: object) => {
+                if (this.observer) {
+                  this.observer.error({ errorCode, errorMessage });
+                }
+
+              });
+
+            } else {
+              const errorMessage = {};
+              this.observer.error({ errorCode, errorMessage });
+            }
+
             if (this.abortController) {
               this.disconnect();
             }
@@ -210,7 +225,7 @@ export class HttpRequest<T> {
       .then((response: Response) => {
         error = response.status < 200 || response.status > 299;
         if (error) {
-          throw { errorCode: response.status, errorMessage: response.json() };
+          throw [response.status, response.json()];
         } else {
           return response.json();
         }

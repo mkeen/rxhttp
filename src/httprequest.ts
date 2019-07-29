@@ -31,10 +31,10 @@ export class HttpRequest<T> {
    */
   private defaultRequestOptions: HttpRequestOptions = {
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
     },
 
-    credentials: 'include' // todo: make this conditional for browser only
+    credentials: 'include'
   }
 
   /**

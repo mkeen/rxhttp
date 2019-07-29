@@ -24,7 +24,7 @@ export interface HttpRequestOptions {
   body?: string;
   retry?: boolean;
   credentials?: string;
-  referer?: string;
+  referrer?: string;
   referrerPolicy?: string;
 }
 

@@ -1,5 +1,3 @@
-import { Observable } from 'rxjs';
-
 /**
  * HTTP request headers type. Only constraints are that keys and values are
  * both strings.

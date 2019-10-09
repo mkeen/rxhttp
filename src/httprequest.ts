@@ -233,6 +233,7 @@ export class HttpRequest<T> {
       })
       .then(json => {
         (<Observer<T>>this.observer).next(json);
+        (<Observer<T>>this.observer).complete();
       });
 
   }
@@ -264,7 +265,6 @@ export class HttpRequest<T> {
    * @param httpFetch Promise to handle
    */
   private streamHandler(httpFetch: Promise<any>): Promise<any> {
-    console.log("stream");
     return httpFetch.then(
       (httpConnection) => {
         if (!this.receivedBytes) {

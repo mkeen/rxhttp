@@ -1,13 +1,14 @@
 import { merge } from 'lodash';
 import { takeUntil } from 'rxjs/operators';
 import { Observable, Observer, Subject } from 'rxjs';
-const nodeFetch = require('node-fetch');
 
 import {
   FetchBehavior,
   FetchError,
   HttpRequestOptions,
 } from './types';
+
+const nodeFetch = require('node-fetch');
 
 /**
  * Class for managing an HTTP request. Supports two different behaviors:
@@ -58,10 +59,10 @@ export class HttpRequest<T> {
     if (this.observer) {
       this.observer.complete();
       this.observer = null;
-      this.observable = Observable
-        .create((observer: Observer<T>) => {
-          this.observer = observer;
-        });
+      this.observable = Observable.create((observer: Observer<T>) => {
+        this.observer = observer;
+      });
+      
     }
 
   }

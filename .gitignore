@@ -1,3 +1,7 @@
 node_modules
 dist
 doc
+# ignore node_modules symlink
+node_modules
+node_modules.nosync
+/.DS_Store

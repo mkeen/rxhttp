@@ -117,50 +117,49 @@ export class HttpRequest<T> {
           ? this.simpleHandler(httpFetch)
           : this.simpleHandlerWithHeaders(httpFetch));
 
-    behavior
-      .catch(exception => {
-        if (this.observer) {
-          if (exception instanceof TypeError) {
-            if (!this.receivedBytes) {
-              this.observer.error(FetchError.connectionRefused);
-              if (this.abortController) {
-                this.disconnect();
-              }
-
-            } else {
-              this.observer.complete();
-              if (this.abortController) {
-                this.disconnect();
-              }
-
+    behavior.catch(exception => {
+      if (this.observer) {
+        if (exception instanceof TypeError) {
+          if (!this.receivedBytes) {
+            this.observer.error(FetchError.connectionRefused);
+            if (this.abortController) {
+              this.disconnect();
             }
 
           } else {
-            const errorCode = exception[0];
-            const errorMessagePromise = exception[1];
-
-            if (errorMessagePromise) {
-              errorMessagePromise.then((errorMessage: object) => {
-                if (this.observer) {
-                  this.observer.error({ errorCode, errorMessage });
-                }
-
-              });
-
-            } else {
-              const errorMessage = {};
-              this.observer.error({ errorCode, errorMessage });
-            }
-
+            this.observer.complete();
             if (this.abortController) {
               this.disconnect();
             }
 
           }
 
+        } else {
+          const errorCode = exception[0];
+          const errorMessagePromise = exception[1];
+
+          if (errorMessagePromise) {
+            errorMessagePromise.then((errorMessage: object) => {
+              if (this.observer) {
+                this.observer.error({ errorCode, errorMessage });
+              }
+
+            });
+
+          } else {
+            const errorMessage = {};
+            this.observer.error({ errorCode, errorMessage });
+          }
+
+          if (this.abortController) {
+            this.disconnect();
+          }
+
         }
 
-      });
+      }
+
+    });
 
     return this.observable
       .pipe(takeUntil(cleanUp));
@@ -222,20 +221,18 @@ export class HttpRequest<T> {
   private simpleHandler(httpFetch: Promise<any>): Promise<any> {
     let error = false;
 
-    return httpFetch
-      .then((response: Response) => {
-        error = response.status < 200 || response.status > 299;
-        if (error) {
-          throw [response.status, response.json()];
-        } else {
-          return response.json();
-        }
+    return httpFetch.then((response: Response) => {
+      error = response.status < 200 || response.status > 299;
+      if (error) {
+        throw [response.status, response.json()];
+      } else {
+        return response.json();
+      }
 
-      })
-      .then(json => {
-        (<Observer<T>>this.observer).next(json);
-        (<Observer<T>>this.observer).complete();
-      });
+    }).then(json => {
+      (<Observer<T>>this.observer).next(json);
+      (<Observer<T>>this.observer).complete();
+    });
 
   }
 
@@ -246,17 +243,16 @@ export class HttpRequest<T> {
    * @param httpFetch Promise to handle
    */
   private simpleHandlerWithHeaders(httpFetch: Promise<any>): Promise<any> {
-    return httpFetch
-      .then(response => {
-        response.json().then((json: T) => {
-          (<Observer<any>>this.observer).next({
-            response: json,
-            headers: response.headers
-          });
-
+    return httpFetch.then(response => {
+      response.json().then((json: T) => {
+        (<Observer<any>>this.observer).next({
+          response: json,
+          headers: response.headers
         });
 
       });
+
+    });
 
   }
 
@@ -329,36 +325,33 @@ export class HttpRequest<T> {
         return next();
         function next(): any {
           const decoder = new TextDecoder('utf-8');
-
-          return reader
-            .read()
-            .then(
-              ({ done,
-                value }: any) => {
-                if (done) {
-                  abortController.abort();
-                  controller.close();
-                  observer.complete();
-                  return;
-                }
-
-                controller.enqueue(value);
-                try {
-                  const decodedValue: string = decoder.decode(value);
-                  try {
-                    observer.next(JSON.parse(decodedValue));
-                  } catch {
-                    console.log('decoded response (ignored) not json (browser) ' + value);
-                  }
-
-                } catch {
-                  console.log('response (ignored) not utf-8 encoded, (browser)' + value);
-                }
-
-                return next();
+          return reader.read().then(
+            ({ done,
+              value }: any) => {
+              if (done) {
+                abortController.abort();
+                controller.close();
+                observer.complete();
+                return;
               }
 
-            );
+              controller.enqueue(value);
+              try {
+                const decodedValue: string = decoder.decode(value);
+                try {
+                  observer.next(JSON.parse(decodedValue));
+                } catch {
+                  console.log('decoded response (ignored) not json (browser) ' + value);
+                }
+
+              } catch {
+                console.log('response (ignored) not utf-8 encoded, (browser)' + value);
+              }
+
+              return next();
+            }
+
+          );
 
         }
 

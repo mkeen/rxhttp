@@ -28,17 +28,17 @@
   "author": "Mike Keen",
   "license": "ISC",
   "dependencies": {
-    "buffer": "^5.2.1",
+    "buffer": "^5.4.3",
     "lodash.merge": "^4.6.2",
     "node-fetch": "^2.6.0",
-    "rxjs": "^6.5.2"
+    "rxjs": "^6.5.4"
   },
   "devDependencies": {
     "@types/lodash.merge": "^4.6.6",
-    "@types/node-fetch": "^2.5.0",
+    "@types/node-fetch": "^2.5.4",
     "ts-loader": "4.4.1",
     "ts-node": "^7.0.1",
-    "typedoc": "^0.15.0",
+    "typedoc": "^0.15.8",
     "typescript": "3.4.1"
   }
 }

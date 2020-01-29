@@ -341,11 +341,11 @@ export class HttpRequest<T> {
                 try {
                   observer.next(JSON.parse(decodedValue));
                 } catch {
-                  console.log('decoded response (ignored) not json (browser) ' + value);
+                  console.log('decoded response (ignored) not json (browser) ', value);
                 }
 
               } catch {
-                console.log('response (ignored) not utf-8 encoded, (browser)' + value);
+                console.log('response (ignored) not utf-8 encoded, (browser)', value);
               }
 
               return next();

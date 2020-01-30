@@ -268,16 +268,14 @@ export class HttpRequest<T> {
           this.receivedBytes = true;
         }
 
-        try {
-          // Web
+        if (typeof (process) !== 'object') {
           return this.readableStream(
             httpConnection.body.getReader(),
             <Observer<T>>this.observer,
             this.abortController
           );
-
-        } catch (e) {
-          // Nodejs
+          
+        } else {
           httpConnection.body.on('data', (bytes: any) => {
             const buffer = Buffer.from(bytes);
             if (buffer.length > 1) {

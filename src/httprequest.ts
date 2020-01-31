@@ -68,7 +68,7 @@ export class HttpRequest<T> {
   }
 
   /**
-   * disconnnect() Closes an active HTTP stream
+   * disconnect() Closes an active HTTP stream
    */
   public disconnect(): void {
     if (typeof (process) !== 'object') {

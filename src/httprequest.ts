@@ -296,6 +296,12 @@ export class HttpRequest<T> {
 
           });
 
+          httpConnection.body.on('end', () => {
+            httpConnection.body.destroy();
+            (<Observer<T>>this.observer).complete();
+          });
+
+          return httpConnection.body;
         }
 
       }

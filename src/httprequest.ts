@@ -1,5 +1,5 @@
 import { merge } from 'lodash';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { Observable, Observer, Subject } from 'rxjs';
 
 import {
@@ -62,7 +62,7 @@ export class HttpRequest<T> {
       this.observable = Observable.create((observer: Observer<T>) => {
         this.observer = observer;
       });
-      
+
     }
 
   }
@@ -70,7 +70,7 @@ export class HttpRequest<T> {
   /**
    * disconnect() Closes an active HTTP stream
    */
-  public disconnect(): void {
+  private disconnect(): void {
     if (typeof (process) !== 'object') {
       this.abortController.abort();
       this.abortController = new AbortController();
@@ -100,7 +100,6 @@ export class HttpRequest<T> {
       this.options = options;
     }
 
-    this.disconnect();
   }
 
   /**
@@ -123,13 +122,13 @@ export class HttpRequest<T> {
           if (!this.receivedBytes) {
             this.observer.error(FetchError.connectionRefused);
             if (this.abortController) {
-              this.disconnect();
+              this.cancel();
             }
 
           } else {
             this.observer.complete();
             if (this.abortController) {
-              this.disconnect();
+              this.cancel();
             }
 
           }
@@ -152,7 +151,7 @@ export class HttpRequest<T> {
           }
 
           if (this.abortController) {
-            this.disconnect();
+            this.cancel();
           }
 
         }
@@ -162,7 +161,9 @@ export class HttpRequest<T> {
     });
 
     return this.observable
-      .pipe(takeUntil(cleanUp));
+      .pipe(takeUntil(cleanUp), finalize(() => {
+        this.cancel();
+      }));
   }
 
   public _fetch(): Promise<void | Response> {
@@ -274,7 +275,7 @@ export class HttpRequest<T> {
             <Observer<T>>this.observer,
             this.abortController
           );
-          
+
         } else {
           httpConnection.body.on('data', (bytes: any) => {
             const buffer = Buffer.from(bytes);
@@ -285,7 +286,7 @@ export class HttpRequest<T> {
                   const parsedJson = JSON.parse(val);
                   (<Observer<T>>this.observer).next(parsedJson);
                 } catch (e2) {
-                  console.log('decoded response (ignored) not json (nodejs)', e2, bytes);
+                  console.log('decoded response (ignored) not json (nodejs)', e2, val);
                 }
 
               } catch (e3) {
@@ -298,7 +299,6 @@ export class HttpRequest<T> {
 
           httpConnection.body.on('end', () => {
             httpConnection.body.destroy();
-            (<Observer<T>>this.observer).complete();
           });
 
           return httpConnection.body;

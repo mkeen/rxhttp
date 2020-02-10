@@ -1,6 +1,6 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.11.1",
+  "version": "1.11.11",
   "description": "Modern Fetch-Based HTTP Client",
   "keywords": [
     "http",
@@ -21,7 +21,6 @@
     "url": "https://github.com/mkeen/rxhttp"
   },
   "scripts": {
-    "typescript": "^2.9.2",
     "build": "tsc",
     "doc": "typedoc --out doc --gaSite rxhttp"
   },
@@ -36,9 +35,9 @@
   "devDependencies": {
     "@types/lodash.merge": "^4.6.6",
     "@types/node-fetch": "^2.5.4",
-    "ts-loader": "4.4.1",
     "ts-node": "^7.0.1",
     "typedoc": "^0.15.8",
-    "typescript": "3.4.1"
+    "ts-loader": "6.2.1",
+    "typescript": "3.7.5"
   }
 }

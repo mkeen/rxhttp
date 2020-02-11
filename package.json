@@ -1,6 +1,6 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.11.11",
+  "version": "1.11.111",
   "description": "Modern Fetch-Based HTTP Client",
   "keywords": [
     "http",
@@ -28,12 +28,12 @@
   "license": "ISC",
   "dependencies": {
     "buffer": "^5.4.3",
-    "lodash.merge": "^4.6.2",
+    "lodash": "^4.17.15",
     "node-fetch": "^2.6.0",
     "rxjs": "^6.5.4"
   },
   "devDependencies": {
-    "@types/lodash.merge": "^4.6.6",
+    "@types/lodash": "^4.14.149",
     "@types/node-fetch": "^2.5.4",
     "ts-node": "^7.0.1",
     "typedoc": "^0.15.8",

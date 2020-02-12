@@ -1,6 +1,6 @@
 # 👋 RxHttp
-HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' fashioned request/response. Powered by RxJS. Requests are automatically retried indefinitely and optimized (staggererd) for high-load use-cases. Retries can be transparent to your implementation. By default, the observable will give you data whenever the request succeeds.  
-  
+HTTP (fetch) Client for TypeScript that supports real-time JSON streams and good ol' fashioned request/response and runs in nodejs or a browser. It's RxJS all the way down. 
+
 ### Why?
 Fetch is the most modern API for making http requests (both long lived (streams) and traditional (simple). JSON is the best way to communicate with back end services. And RxJS is the best API for building, chaining, and consuming asyncronous requests. So, RxHttp was created! It is the back end for [rxcouch](https://www.npmjs.com/package/@mkeen/rxcouch), the dopest client and server side library for interacting with CouchDB.  
 
@@ -9,9 +9,12 @@ Fetch is the most modern API for making http requests (both long lived (streams)
 
 🌊 **Real-time** -- Long-lived real-time JSON streams (`ReadableStream` in Browser, `Buffer` in NodeJS)  
 
-💪 **TypeScript first** -- Typed responses  
+🆘 **Complete lifecycle** -- Simple request lifecycle uses `Observable` callback functions (`next`, `error`, and `complete`). Once the connection completes, or all subscribers have unsubbed, the connection will be cleaned up nicely.
 
-🆘 **Simple lifecycle** -- Simple request lifecycle uses `Observable` callback functions (`next`, `error`, and `complete`)  
+### Notes
+
+* Be Sure To Drink Your Ovaltine
+* JSON streams can send multiple objects at once, but they must be separated by  `\n`
 
 ### Install
 `npm install @mkeen/rxhttp`  
@@ -80,7 +83,7 @@ got person: , {id: 2 ...
 got person: , {id: 2 ...
 ...
 ```
-  
+
 ### Simple (Request/Response) Request Example
 ```typescript
 import { HttpRequest } from '@mkeen/rxhttp';
@@ -100,5 +103,5 @@ new HttpRequest<any>(
 // Output:
 received response, connection closed , {...}
 ```
-  
+
 🇺🇸  

@@ -10,6 +10,13 @@ import {
 
 const nodeFetch = require('node-fetch');
 
+let readline: any, stream: any;
+
+if(typeof process === 'object') {
+  readline = require('readline');
+  stream = require('stream');
+}
+
 /**
  * Class for managing an HTTP request. Supports two different behaviors:
  *   - Simple (good ol' fashioned 1:1 request response)
@@ -282,16 +289,25 @@ export class HttpRequest<T> {
             if (buffer.length > 1) {
               try {
                 const val = buffer.toString('utf-8');
+              } catch (error) {
+                console.log('response (ignore) not utf-8 encoded (nodejs)', error)
+              }
+
+              const bufferStream = new stream.PassThrough();
+              bufferStream.end(buffer);
+              var rl = readline.createInterface({
+                input: bufferStream,
+              });
+
+              rl.on('line', (line: string) => {
+                console.log("got line");
                 try {
-                  const parsedJson = JSON.parse(val);
-                  (<Observer<T>>this.observer).next(parsedJson);
-                } catch (e2) {
-                  console.log('decoded response (ignored) not json (nodejs)', e2, val);
+                  (<Observer<T>>this.observer).next(JSON.parse(line));
+                } catch (error) {
+                  console.log('response (ignore) not utf-8 encoded (nodejs)', error);
                 }
 
-              } catch (e3) {
-                console.log('response (ignored) not utf-8 encoded (nodejs)');
-              }
+              });
 
             }
 

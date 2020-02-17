@@ -300,7 +300,6 @@ export class HttpRequest<T> {
               });
 
               rl.on('line', (line: string) => {
-                console.log("got line");
                 try {
                   (<Observer<T>>this.observer).next(JSON.parse(line));
                 } catch (error) {

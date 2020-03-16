@@ -1,6 +1,6 @@
 {
   "name": "@mkeen/rxhttp",
-  "version": "1.12.4",
+  "version": "1.12.12",
   "description": "Modern Fetch-Based HTTP Client",
   "keywords": [
     "http",
@@ -22,7 +22,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "doc": "typedoc --out doc --gaSite rxhttp"
+    "doc": "typedoc --out doc --gaSite rxhttp",
+    "test:node": "ts-node src/test/node.ts"
   },
   "author": "Mike Keen",
   "license": "ISC",
@@ -36,10 +37,10 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.149",
-    "@types/node-fetch": "^2.5.4",
+    "@types/node-fetch": "^2.5.5",
+    "ts-loader": "6.2.1",
     "ts-node": "^7.0.1",
     "typedoc": "^0.15.8",
-    "ts-loader": "6.2.1",
     "typescript": "3.7.5"
   }
 }

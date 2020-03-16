@@ -8,7 +8,7 @@ import {
   HttpRequestOptions,
 } from './types';
 
-const nodeFetch = require('node-fetch');
+const nodeFetch = require('node-fetch').default
 
 let readline: any, stream: any;
 
@@ -55,7 +55,8 @@ export class HttpRequest<T> {
   constructor(
     private url: string,
     private options: HttpRequestOptions = {},
-    private behavior: FetchBehavior = FetchBehavior.simple
+    private behavior: FetchBehavior = FetchBehavior.simple,
+    private silent: boolean = false
   ) { }
 
   /**
@@ -81,6 +82,11 @@ export class HttpRequest<T> {
     if (typeof (process) !== 'object') {
       this.abortController.abort();
       this.abortController = new AbortController();
+    } else {
+      if (this.observer) {
+        this.observer.error('closed');
+      }
+      
     }
 
   }
@@ -211,17 +217,6 @@ export class HttpRequest<T> {
   }
 
   /**
-   * retryTimeDelay() Returns a random whole number inside a predetermined range
-   * Used to determine how long to delay before a retry. This is to be nice to
-   * servers that are under heavy load.
-   */
-  public retryTimeDelay(): number {
-    const range: any = [2500, 10000];
-    const delay = Math.random() * (range[1] - range[0]) + range[0];
-    return delay;
-  }
-
-  /**
    * simpleHandler() Handles a simple HTTP response containing JSON data
    *
    * @param httpFetch Promise to handle
@@ -290,7 +285,10 @@ export class HttpRequest<T> {
               try {
                 const val = buffer.toString('utf-8');
               } catch (error) {
-                console.log('response (ignore) not utf-8 encoded (nodejs)', error)
+                if (!this.silent) {
+                  console.log('response (ignore) not utf-8 encoded (nodejs)', error)
+                }
+                
               }
 
               const bufferStream = new stream.PassThrough();
@@ -300,10 +298,21 @@ export class HttpRequest<T> {
               });
 
               rl.on('line', (line: string) => {
+                let parsedJson = null;
                 try {
-                  (<Observer<T>>this.observer).next(JSON.parse(line));
+                  parsedJson = JSON.parse(line);
                 } catch (error) {
-                  console.log('response (ignore) not utf-8 encoded (nodejs)', error);
+                  if(!this.silent) {
+                    console.log('line (ignore) not json encoded (nodejs)', error, line);
+                  }
+
+                }
+
+                if(parsedJson) {
+                  if(this.observer) {
+                    (<Observer<T>>this.observer).next(parsedJson);
+                  }
+
                 }
 
               });
@@ -313,7 +322,8 @@ export class HttpRequest<T> {
           });
 
           httpConnection.body.on('end', () => {
-            httpConnection.body.destroy();
+            httpConnection.body. destroy();
+            (<Observer<T>>this.observer).complete();
           });
 
           return httpConnection.body;
@@ -337,7 +347,8 @@ export class HttpRequest<T> {
   private readableStream(
     reader: ReadableStreamDefaultReader,
     observer: Observer<T>,
-    abortController: AbortController
+    abortController: AbortController,
+    silent: boolean = this.silent
   ): ReadableStream {
     return new ReadableStream({
       start: (controller: any) => {
@@ -360,11 +371,17 @@ export class HttpRequest<T> {
                 try {
                   observer.next(JSON.parse(decodedValue));
                 } catch {
-                  console.log('decoded response (ignored) not json (browser) ', value);
+                  if(!silent) {
+                    console.log('decoded response (ignored) not json (browser) ', value);
+                  }
+
                 }
 
               } catch {
-                console.log('response (ignored) not utf-8 encoded, (browser)', value);
+                if(!silent) {
+                  console.log('response (ignored) not utf-8 encoded, (browser)', value);
+                }
+
               }
 
               return next();

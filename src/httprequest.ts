@@ -1,6 +1,6 @@
 import { merge } from 'lodash';
-import { takeUntil, finalize } from 'rxjs/operators';
-import { Observable, Observer, Subject } from 'rxjs';
+import { takeUntil, finalize, map, buffer, tap, take } from 'rxjs/operators';
+import { Observable, Observer, Subject, fromEvent } from 'rxjs';
 
 import {
   FetchBehavior,
@@ -45,6 +45,8 @@ export class HttpRequest<T> {
     credentials: 'include'
   }
 
+  private jsonStrBuffer: string = '';
+
   /**
    * Constructor.
    *
@@ -57,7 +59,15 @@ export class HttpRequest<T> {
     private options: HttpRequestOptions = {},
     private behavior: FetchBehavior = FetchBehavior.simple,
     private silent: boolean = false
-  ) { }
+  ) {
+    if (options.body) {
+      if ((Object.prototype.toString.call(options.body) !== '[object String]')) {
+        options.body = JSON.stringify(options.body)
+      }
+
+    }
+
+  }
 
   /**
    * cancel() Cancels the current request
@@ -153,14 +163,24 @@ export class HttpRequest<T> {
           if (errorMessagePromise) {
             errorMessagePromise.then((errorMessage: object) => {
               if (this.observer) {
-                this.observer.error({ errorCode, errorMessage });
+                if (errorCode !== undefined) {
+                  this.observer.error({ errorCode, errorMessage });
+                } else {
+                  this.observer.complete();
+                }
+                
               }
 
             });
 
           } else {
             const errorMessage = {};
-            this.observer.error({ errorCode, errorMessage });
+            if (errorCode !== undefined) {
+              this.observer.error({ errorCode, errorMessage });
+            } else {
+              this.observer.complete();
+            }
+            
           }
 
           if (this.abortController) {
@@ -279,51 +299,37 @@ export class HttpRequest<T> {
           );
 
         } else {
-          httpConnection.body.on('data', (bytes: any) => {
-            const buffer = Buffer.from(bytes);
-            if (buffer.length > 1) {
-              try {
-                const val = buffer.toString('utf-8');
-              } catch (error) {
-                if (!this.silent) {
-                  console.log('response (ignore) not utf-8 encoded (nodejs)', error)
-                }
-                
-              }
-
-              const bufferStream = new stream.PassThrough();
-              bufferStream.end(buffer);
-              var rl = readline.createInterface({
-                input: bufferStream,
-              });
-
-              rl.on('line', (line: string) => {
-                let parsedJson = null;
+          const jsonBufferFull = new Subject();
+          fromEvent(httpConnection.body, 'data').pipe(
+            map((bytes: any) => String.fromCharCode.apply(null, bytes)),
+            tap((string) => {
+              this.jsonStrBuffer += string;
+              if(this.jsonStrBuffer.length > 1) {
                 try {
-                  parsedJson = JSON.parse(line);
-                } catch (error) {
-                  if(!this.silent) {
-                    console.log('line (ignore) not json encoded (nodejs)', error, line);
-                  }
+                  JSON.parse(this.jsonStrBuffer);
+                  jsonBufferFull.next(true);
+                } catch {
 
                 }
 
-                if(parsedJson) {
-                  if(this.observer) {
-                    (<Observer<T>>this.observer).next(parsedJson);
-                  }
-
-                }
-
-              });
-
+              }
+              
+            }),
+            buffer(jsonBufferFull)
+          ).subscribe((_full: any) => {
+            if(this.observer) {
+              (<Observer<T>>this.observer).next(JSON.parse(this.jsonStrBuffer));
+              this.jsonStrBuffer = '';
             }
 
           });
 
-          httpConnection.body.on('end', () => {
-            httpConnection.body. destroy();
-            (<Observer<T>>this.observer).complete();
+          fromEvent(httpConnection.body, 'end').pipe(take(1)).subscribe((_ended) => {
+            httpConnection.body.destroy();
+            if(this.observer) {
+              (<Observer<T>>this.observer).complete();
+            }
+
           });
 
           return httpConnection.body;

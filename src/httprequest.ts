@@ -58,7 +58,8 @@ export class HttpRequest<T> {
     private url: string,
     private options: HttpRequestOptions = {},
     private behavior: FetchBehavior = FetchBehavior.simple,
-    private silent: boolean = false
+    private silent: boolean = false,
+    private forceWeb: boolean = false
   ) {
     if (options.body) {
       if ((Object.prototype.toString.call(options.body) !== '[object String]')) {
@@ -291,7 +292,7 @@ export class HttpRequest<T> {
           this.receivedBytes = true;
         }
 
-        if (typeof (process) !== 'object') {
+        if (typeof (process) !== 'object' || this.forceWeb) {
           return this.readableStream(
             httpConnection.body.getReader(),
             <Observer<T>>this.observer,

@@ -2,6 +2,8 @@ import { merge } from 'lodash';
 import { takeUntil, finalize, map, buffer, tap, take } from 'rxjs/operators';
 import { Observable, Observer, Subject, fromEvent } from 'rxjs';
 
+const jsEnv = require('browser-or-node');
+
 import {
   FetchBehavior,
   FetchError,
@@ -10,10 +12,10 @@ import {
 
 const nodeFetch = require('node-fetch').default
 
-let readline: any, stream: any;
+let stream: any;
 
-if(typeof process === 'object') {
-  readline = require('readline');
+if(!jsEnv.isBrowser) {
+  console.log("I think I am running on nodejs");
   stream = require('stream');
 }
 
@@ -25,7 +27,7 @@ if(typeof process === 'object') {
  */
 export class HttpRequest<T> {
   private receivedBytes: boolean = false;
-  private abortController: any = typeof (process) !== 'object' ? new AbortController() : null;
+  private abortController: any = jsEnv.isBrowser ? new AbortController() : null;
 
   private observer: Observer<T> | null = null;
   private observable: Observable<T> = Observable
@@ -90,7 +92,7 @@ export class HttpRequest<T> {
    * disconnect() Closes an active HTTP stream
    */
   private disconnect(): void {
-    if (typeof (process) !== 'object') {
+    if (jsEnv.isBrowser) {
       this.abortController.abort();
       this.abortController = new AbortController();
     } else {
@@ -201,7 +203,7 @@ export class HttpRequest<T> {
   }
 
   public _fetch(): Promise<void | Response> {
-    if (typeof (process) !== 'object') {
+    if (jsEnv.isBrowser) {
       let config = merge(
         merge(
           this.defaultRequestOptions, {
@@ -292,7 +294,7 @@ export class HttpRequest<T> {
           this.receivedBytes = true;
         }
 
-        if (typeof (process) !== 'object' || this.forceWeb) {
+        if (jsEnv.isBrowser) {
           return this.readableStream(
             httpConnection.body.getReader(),
             <Observer<T>>this.observer,

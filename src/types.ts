@@ -13,19 +13,6 @@ export type HttpSessionCookies = {} & {
   [prop: string]: string;
 }
 
-/**
- * Configuration for HttpRequest
- */
-export interface HttpRequestOptions {
-  headers?: HttpRequestHeaders;
-  method?: string;
-  body?: string;
-  retry?: boolean;
-  credentials?: string;
-  referrer?: string;
-  referrerPolicy?: string;
-}
-
 export interface HttpResponseWithHeaders<T> {
   headers: Headers;
   response: T;

@@ -7,15 +7,13 @@ const jsEnv = require('browser-or-node');
 import {
   FetchBehavior,
   FetchError,
-  HttpRequestOptions,
 } from './types';
 
-const nodeFetch = require('node-fetch').default
+const nodeFetch = require('node-fetch').default;
 
 let stream: any;
 
-if(!jsEnv.isBrowser) {
-  console.log("I think I am running on nodejs");
+if (!jsEnv.isBrowser) {
   stream = require('stream');
 }
 
@@ -39,7 +37,7 @@ export class HttpRequest<T> {
    * Any configuration options specified here are un-overridable.
    * JSON is the only supported content-type.
    */
-  private defaultRequestOptions: HttpRequestOptions = {
+  private defaultRequestOptions: RequestInit = {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
     },
@@ -58,10 +56,9 @@ export class HttpRequest<T> {
    */
   constructor(
     private url: string,
-    private options: HttpRequestOptions = {},
+    private options: RequestInit = {},
     private behavior: FetchBehavior = FetchBehavior.simple,
     private silent: boolean = false,
-    private forceWeb: boolean = false
   ) {
     if (options.body) {
       if ((Object.prototype.toString.call(options.body) !== '[object String]')) {
@@ -113,7 +110,7 @@ export class HttpRequest<T> {
    */
   public reconfigure(
     url: string,
-    options?: HttpRequestOptions,
+    options?: RequestInit,
     behavior?: FetchBehavior
   ) {
     if (behavior) {
@@ -143,6 +140,10 @@ export class HttpRequest<T> {
           : this.simpleHandlerWithHeaders(httpFetch));
 
     behavior.catch(exception => {
+      if (!this.silent) {
+        console.log("[rxhttp] exception", exception);
+      }
+
       if (this.observer) {
         if (exception instanceof TypeError) {
           if (!this.receivedBytes) {
@@ -256,8 +257,11 @@ export class HttpRequest<T> {
       }
 
     }).then(json => {
-      (<Observer<T>>this.observer).next(json);
-      (<Observer<T>>this.observer).complete();
+      if (this.observer) {
+        this.observer.next(json);
+        this.observer.complete();
+      }
+
     });
 
   }
@@ -307,11 +311,14 @@ export class HttpRequest<T> {
             map((bytes: any) => String.fromCharCode.apply(null, bytes)),
             tap((string) => {
               this.jsonStrBuffer += string;
-              if(this.jsonStrBuffer.length > 1) {
+              if (this.jsonStrBuffer.length > 1) {
                 try {
                   JSON.parse(this.jsonStrBuffer);
                   jsonBufferFull.next(true);
                 } catch {
+                  if (!this.silent) {
+                    console.log("[rxhttp] error - ", this.jsonStrBuffer);
+                  }
 
                 }
 
@@ -320,7 +327,7 @@ export class HttpRequest<T> {
             }),
             buffer(jsonBufferFull)
           ).subscribe((_full: any) => {
-            if(this.observer) {
+            if (this.observer) {
               (<Observer<T>>this.observer).next(JSON.parse(this.jsonStrBuffer));
               this.jsonStrBuffer = '';
             }
@@ -329,7 +336,7 @@ export class HttpRequest<T> {
 
           fromEvent(httpConnection.body, 'end').pipe(take(1)).subscribe((_ended) => {
             httpConnection.body.destroy();
-            if(this.observer) {
+            if (this.observer) {
               (<Observer<T>>this.observer).complete();
             }
 
@@ -380,15 +387,15 @@ export class HttpRequest<T> {
                 try {
                   observer.next(JSON.parse(decodedValue));
                 } catch {
-                  if(!silent) {
-                    console.log('decoded response (ignored) not json (browser) ', value);
+                  if (!silent) {
+                    console.log('[rxhttp] decoded response (ignored) not json (browser) ', value);
                   }
 
                 }
 
               } catch {
-                if(!silent) {
-                  console.log('response (ignored) not utf-8 encoded, (browser)', value);
+                if (!silent) {
+                  console.log('[rxhttp] response (ignored) not utf-8 encoded, (browser)', value);
                 }
 
               }

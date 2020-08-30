@@ -317,7 +317,7 @@ export class HttpRequest<T> {
                   jsonBufferFull.next(true);
                 } catch {
                   if (!this.silent) {
-                    console.log("[rxhttp] error - ", this.jsonStrBuffer);
+                    console.log("[rxhttp] error - ", string);
                   }
 
                 }

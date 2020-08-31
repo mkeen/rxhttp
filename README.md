@@ -2,7 +2,7 @@
 HTTP Client that uses Fetch API built with TypeScript that supports real-time JSON streams. It runs in NodeJS and Browser. It's powered by RXJS.
 
 ### Why?
-The Fetch API is the modern API for making http requests -- both long lived (streams) and traditional (simple). And RxJS makes it extremely convenient to build, chain, and consume asyncronous streams.
+The Fetch API is the modern API for making http requests -- both long lived (streams) and traditional (simple). And RxJS makes it extremely convenient to build, chain, and consume asyncronous streams. These technologies all compliment each other well enough that it was worth creating this lib.
 
 ### Features
 📀 **Universal** -- Works on both NodeJS and Browser

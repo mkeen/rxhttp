@@ -25,7 +25,7 @@ import { HttpRequest } from '@mkeen/rxhttp';
 
 new HttpRequest<any>('https://localhost/simple')
 .subscribe(
-  response => console.log('received response, connection closed', incoming_data);
+  response => console.log('received response, connection closed', response);
 );
 
 // Output:
@@ -79,7 +79,7 @@ new HttpRequest<Person>(
 .fetch()
 .subscribe(
  (response: Person) => {
-    console.log('person created successfully, connection closed', incoming_data);
+    console.log('person created successfully, connection closed', response);
   },
   
   (error: any) => {

@@ -9,7 +9,7 @@ The Fetch API is the modern API for making http requests -- both long lived (str
 
 🌊 **Real-time** -- Supports long-lived real-time Chunked JSON streams
 
-🆘 **Complete lifecycle** -- Simple request lifecycle uses `Observable` callback functions (`next`, `error`, and `complete`). Once the connection completes, or all subscribers have unsubbed, the connection will be cleaned up to ensure there aren't any memory leaks.
+🆘 **Complete Observable Lifecycle** -- Simple request lifecycle uses `Observable` callback functions (`next`, `error`, and `complete`). Once the connection completes, or all subscribers have unsubbed, the connection will be cleaned up to ensure there aren't any memory leaks.
 
 ### Install
 `npm install @mkeen/rxhttp`  

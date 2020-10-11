@@ -46,8 +46,7 @@ new HttpRequest<Person>(
   { method: 'POST', body: {
     email: 'mwk@mikekeen.com',
     name: 'Mike Keen'
-  } },
-  FetchBehavior.simple
+  } }
 )
 .fetch()
 .subscribe(
